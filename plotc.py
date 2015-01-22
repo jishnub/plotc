@@ -437,8 +437,8 @@ def subplot_index_is_valid(subplot_index):
 	
 	nrows=int(int(subplot_index)//100)
 	ncols=int((int(subplot_index)%100)//10)
-	rowno=int((int(subplot_index)%10-1)//nrows)
-	colno=int((int(subplot_index)%10-1)%nrows)
+	rowno=int((int(subplot_index)%10-1)//ncols)
+	colno=int((int(subplot_index)%10-1)%ncols)
 
 	try:
 		assert rowno<nrows and colno<ncols
