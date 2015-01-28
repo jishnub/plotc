@@ -19,7 +19,9 @@ def colorplot(arr,**kwargs):
 		arr=np.real(arr)
 	
 	x=kwargs.get('x',None)
+	x2=kwargs.get('x2',None)
 	y=kwargs.get('y',None)
+	y2=kwargs.get('y2',None)
 	xr=kwargs.get('xr',None)
 	yr=kwargs.get('yr',None)
 	subplot_index=kwargs.get('subplot_index',111)
@@ -36,7 +38,14 @@ def colorplot(arr,**kwargs):
 	flipx=kwargs.get('flipx',False)
 	xtickpad=kwargs.get('xtickpad',6.)
 	ytickpad=kwargs.get('ytickpad',6.)
+	int_ticks=kwargs.get('int_ticks',True)
+	int_ticks2=kwargs.get('int_ticks2',True)
+	x1bins=kwargs.get('x1bins',10)
+	y1bins=kwargs.get('y1bins',10)
+	x2bins=kwargs.get('x2bins',5)
+	y2bins=kwargs.get('y2bins',5)
 	polar=kwargs.get('polar',False)
+	
 	amin=arr.min()
 	amax=arr.max()
 	
@@ -98,18 +107,24 @@ def colorplot(arr,**kwargs):
 			return
 	
 	#~ Shift axis grid from boundaries to centers of grid squares
-	dx=x[-1]-x[-2];dy=y[-1]-y[-2]
-	xlast=x[-1]+dx;ylast=y[-1]+dy
-
+	#~ dx=x[-1]-x[-2];dy=y[-1]-y[-2]
+	#~ xlast=x[-1]+dx;ylast=y[-1]+dy
+#~ 
 	#~ Boundary trick from http://alex.seeholzer.de/2014/05/fun-with-matplotlib-pcolormesh-getting-data-to-display-in-the-right-position/
-	xgrid=np.insert(x,len(x),xlast)-dx/2
-	ygrid=np.insert(y,len(y),ylast)-dy/2
+	#~ xgrid=np.insert(x,len(x),xlast)-dx/2
+	#~ ygrid=np.insert(y,len(y),ylast)-dy/2
+	
+	xgrid,ygrid=get_centered_grid_for_pcolormesh(x,y)
 	
 	Xax,Yax=np.meshgrid(xgrid,ygrid)
 
 	
 	#~ Set ranges of axis ticks
 	set_axis_limits(xgrid,ygrid,xr,yr)	
+	
+	if int_ticks: ax.get_xaxis().set_major_locator(ticker.MaxNLocator(nbins=x1bins,integer=True))
+	if int_ticks: ax.get_yaxis().set_major_locator(ticker.MaxNLocator(nbins=y1bins,integer=True))
+	
 	
 	#~ Take care of empty colorbar range
 	if vmin==vmax: 		
@@ -120,9 +135,28 @@ def colorplot(arr,**kwargs):
 	
 	#~ Actual plot
 	if cmap is None: cmap=get_appropriate_colormap(vmin,vmax)
-	plt.pcolormesh(Xax,Yax,arr,cmap=cmap,vmin=vmin,vmax=vmax,zorder=zorder)
+	p=plt.pcolormesh(Xax,Yax,arr,cmap=cmap,vmin=vmin,vmax=vmax,zorder=zorder)
+	
+	
 	
 	if colorbar: cb=generate_colorbar(colorbar_scientific=colorbar_scientific)	
+	
+	if x2 is not None: 
+		ax2=plt.twiny(ax=ax)
+		dx=x2[1]-x2[0]
+		x2,_=get_centered_grid_for_pcolormesh(x=x2,y=None)
+		
+		ax2.set_xlim(x2[0],x2[-1])
+		
+		if int_ticks2: ax2.get_xaxis().set_major_locator(ticker.MaxNLocator(nbins=x2bins,integer=True))
+		
+	if y2 is not None: 
+		ax2=plt.twinx(ax=ax)
+		_,y2=get_centered_grid_for_pcolormesh(x=None,y=y2)
+		
+		ax2.set_ylim(y2[0],y2[-1])
+		
+		if int_ticks2: ax2.get_yaxis().set_major_locator(ticker.MaxNLocator(nbins=y2bins,integer=True))
 	
 	if flipx: ax.invert_xaxis()
 	if flipy: ax.invert_yaxis()
@@ -135,9 +169,11 @@ def colorplot(arr,**kwargs):
 		tick.set_pad(ytickpad)
 		tick.label1 = tick._get_text1()
 	
-	if xlabel: plt.xlabel(xlabel)
-	if ylabel: plt.ylabel(ylabel)
-	if title:  plt.title(title)
+	if xlabel: ax.set_xlabel(xlabel)
+	if ylabel: ax.set_ylabel(ylabel)
+	if title:  ax.set_title(title)
+	
+	
 	
 	
 def plot1D(y,**kwargs):
@@ -199,11 +235,10 @@ def plot1D(y,**kwargs):
 			plt.ylim(yr[0],prev_ymax)
 	else:					plt.ylim(yr)
 	
-	if Ny==1:
-		plt.plot(x,y,zorder=zorder)
-	else:
-		for n in xrange(Ny):
-			plt.plot(x,y[n],zorder=zorder)
+	if Ny>1:
+		print "Plotting columns of y"
+	
+	plt.plot(x,y,zorder=zorder)
 			
 	if xlabel: plt.xlabel(xlabel)
 	if ylabel: plt.ylabel(ylabel)
@@ -300,7 +335,41 @@ def sphericalplot(arr,**kwargs):
 	ax.set_zlabel(zlabel)
 	if title:  plt.title(title)
 
+def drawline(**kwargs):
 	
+	
+	ls=kwargs.get('ls','--')
+	col=kwargs.get('col','k')
+	
+	ax=plt.gca()
+	xl=ax.get_xlim()
+	yl=ax.get_ylim()
+	
+	x=kwargs.get('x',xl)
+	y=kwargs.get('y',yl)
+	
+	try: 
+		if len(y)==1: y=y[0]
+	except: pass
+	try: 
+		if len(x)==1: x=x[0]
+	except: pass
+	if (not isinstance(x,list) and not isinstance(x,tuple)
+		and not isinstance(y,list) and not isinstance(y,tuple)):
+		print "Either x or y needs to be a range"
+		return
+	
+	try: 
+		int(y)
+		y=[y,y]
+	except TypeError: pass
+	try: 
+		int(x)
+		x=[x,x]
+	except TypeError: pass
+		
+	plt.plot(x,y,ls=ls,color=col)
+
 def gridlist(nrows,ncols):
 	return iter([str(nrows)+str(ncols)+str(i) for i in xrange(1,nrows*ncols+1)])
 
@@ -373,6 +442,25 @@ def get_appropriate_colormap(vmin,vmax):
 	else: 
 		return positive_negative_cmap
 
+def get_centered_grid_for_pcolormesh(x=None,y=None):
+	#~ Shift axis grid from boundaries to centers of grid squares
+	#~ Boundary trick from http://alex.seeholzer.de/2014/05/fun-with-matplotlib-pcolormesh-getting-data-to-display-in-the-right-position/
+	
+	if x is not None:
+		dx=x[-1]-x[-2];
+		xlast=x[-1]+dx;
+		xgrid=np.insert(x,len(x),xlast)-dx/2
+	else: xgrid=None
+	
+	if y is not None:
+		dy=y[-1]-y[-2]
+		ylast=y[-1]+dy
+		ygrid=np.insert(y,len(y),ylast)-dy/2
+	else: ygrid=None
+		
+
+	return xgrid,ygrid
+
 
 def center_range_around_zero(vmin,vmax,amin,amax):
 	if vmax*vmin<0:
@@ -439,6 +527,7 @@ def subplot_index_is_valid(subplot_index):
 	ncols=int((int(subplot_index)%100)//10)
 	rowno=int((int(subplot_index)%10-1)//ncols)
 	colno=int((int(subplot_index)%10-1)%ncols)
+	
 
 	try:
 		assert rowno<nrows and colno<ncols
