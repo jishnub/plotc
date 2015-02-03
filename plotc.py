@@ -4,6 +4,11 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 
 show=plt.show
+legend=plt.legend
+figure=plt.figure
+hline=hlines=plt.hlines
+vline=vlines=plt.vlines
+savefig=plt.savefig
 
 def colorplot(arr,**kwargs):
 	arr=np.squeeze(arr)
@@ -24,10 +29,19 @@ def colorplot(arr,**kwargs):
 	y2=kwargs.get('y2',None)
 	xr=kwargs.get('xr',None)
 	yr=kwargs.get('yr',None)
-	subplot_index=kwargs.get('subplot_index',111)
+	xr=kwargs.get('xlim',xr)
+	yr=kwargs.get('ylim',yr)
+	xrpad=kwargs.get('xrpad',False)
+	yrpad=kwargs.get('yrpad',False)
+	subplot_index=kwargs.get('sp',111)
+	subplot_index=kwargs.get('subplot',subplot_index)
+	subplot_index=kwargs.get('subplot_index',subplot_index)
 	if not subplot_index_is_valid(subplot_index): return
 	colorbar=kwargs.get('colorbar',True)
 	colorbar_scientific=kwargs.get('cbar_sci',False)
+	colorbar_scientific=kwargs.get('colorbar_scientific',colorbar_scientific)
+	colorbar_title=kwargs.get('cbar_title',None)
+	colorbar_title=kwargs.get('colorbar_title',colorbar_title)
 	xlabel=kwargs.get('xlabel',None)
 	ylabel=kwargs.get('ylabel',None)
 	title=kwargs.get('title',None)
@@ -38,13 +52,21 @@ def colorplot(arr,**kwargs):
 	flipx=kwargs.get('flipx',False)
 	xtickpad=kwargs.get('xtickpad',6.)
 	ytickpad=kwargs.get('ytickpad',6.)
-	int_ticks=kwargs.get('int_ticks',True)
+	int_ticks_x=kwargs.get('int_ticks_x',False)
+	int_ticks_y=kwargs.get('int_ticks_y',False)
+	int_ticks=kwargs.get('int_ticks',False)
+	if int_ticks: int_ticks_x=int_ticks_y=True
+	int_ticks2_x=kwargs.get('int_ticks2_x',True)
+	int_ticks2_y=kwargs.get('int_ticks2_y',True)
 	int_ticks2=kwargs.get('int_ticks2',True)
+	if int_ticks2: int_ticks2_x=int_ticks2_y=True
 	x1bins=kwargs.get('x1bins',10)
 	y1bins=kwargs.get('y1bins',10)
 	x2bins=kwargs.get('x2bins',5)
 	y2bins=kwargs.get('y2bins',5)
 	polar=kwargs.get('polar',False)
+	rasterized=kwargs.get('rasterized',False)
+	
 	
 	amin=arr.min()
 	amax=arr.max()
@@ -116,14 +138,15 @@ def colorplot(arr,**kwargs):
 	
 	xgrid,ygrid=get_centered_grid_for_pcolormesh(x,y)
 	
-	Xax,Yax=np.meshgrid(xgrid,ygrid)
+	#~ Don't need meshgrid
+	#~ Xax,Yax=np.meshgrid(xgrid,ygrid)
 
 	
 	#~ Set ranges of axis ticks
-	set_axis_limits(xgrid,ygrid,xr,yr)	
+	set_axis_limits(xgrid,ygrid,xr,yr,xrpad=xrpad,yrpad=yrpad)	
 	
-	if int_ticks: ax.get_xaxis().set_major_locator(ticker.MaxNLocator(nbins=x1bins,integer=True))
-	if int_ticks: ax.get_yaxis().set_major_locator(ticker.MaxNLocator(nbins=y1bins,integer=True))
+	if int_ticks_x: ax.get_xaxis().set_major_locator(ticker.MaxNLocator(nbins=x1bins,integer=True))
+	if int_ticks_y: ax.get_yaxis().set_major_locator(ticker.MaxNLocator(nbins=y1bins,integer=True))
 	
 	
 	#~ Take care of empty colorbar range
@@ -135,11 +158,14 @@ def colorplot(arr,**kwargs):
 	
 	#~ Actual plot
 	if cmap is None: cmap=get_appropriate_colormap(vmin,vmax)
-	p=plt.pcolormesh(Xax,Yax,arr,cmap=cmap,vmin=vmin,vmax=vmax,zorder=zorder)
+	#~ p=plt.pcolormesh(Xax,Yax,arr,cmap=cmap,vmin=vmin,vmax=vmax,zorder=zorder,rasterized=rasterized)
+	#~ Axes can be 1D
+	p=plt.pcolormesh(xgrid,ygrid,arr,cmap=cmap,vmin=vmin,vmax=vmax,zorder=zorder,rasterized=rasterized)
 	
 	
 	
-	if colorbar: cb=generate_colorbar(colorbar_scientific=colorbar_scientific)	
+	if colorbar: cb=generate_colorbar(colorbar_scientific=colorbar_scientific,
+	cbar_title=colorbar_title)	
 	
 	if x2 is not None: 
 		ax2=plt.twiny(ax=ax)
@@ -148,7 +174,7 @@ def colorplot(arr,**kwargs):
 		
 		ax2.set_xlim(x2[0],x2[-1])
 		
-		if int_ticks2: ax2.get_xaxis().set_major_locator(ticker.MaxNLocator(nbins=x2bins,integer=True))
+		if int_ticks2_x: ax2.get_xaxis().set_major_locator(ticker.MaxNLocator(nbins=x2bins,integer=True))
 		
 	if y2 is not None: 
 		ax2=plt.twinx(ax=ax)
@@ -156,7 +182,7 @@ def colorplot(arr,**kwargs):
 		
 		ax2.set_ylim(y2[0],y2[-1])
 		
-		if int_ticks2: ax2.get_yaxis().set_major_locator(ticker.MaxNLocator(nbins=y2bins,integer=True))
+		if int_ticks2_y: ax2.get_yaxis().set_major_locator(ticker.MaxNLocator(nbins=y2bins,integer=True))
 	
 	if flipx: ax.invert_xaxis()
 	if flipy: ax.invert_yaxis()
@@ -172,26 +198,33 @@ def colorplot(arr,**kwargs):
 	if xlabel: ax.set_xlabel(xlabel)
 	if ylabel: ax.set_ylabel(ylabel)
 	if title:  ax.set_title(title)
-	
-	
-	
-	
+		
 def plot1D(y,**kwargs):
+	
+	try: y=np.array(y)
+	except:
+		print "Require array like object to plot"
+		return
+	
 	x=kwargs.get('x',None)
 	xr=kwargs.get('xr',None)
 	yr=kwargs.get('yr',None)
-	subplot_index=kwargs.get('subplot_index',None)
+	xr=kwargs.get('xlim',xr)
+	yr=kwargs.get('ylim',yr)
+	subplot_index=kwargs.get('subplot_index',111)
 	if not subplot_index_is_valid(subplot_index): return
 	xlabel=kwargs.get('xlabel',None)
 	ylabel=kwargs.get('ylabel',None)
 	title=kwargs.get('title',None)
 	zorder=kwargs.get('zorder',0)
+	label=kwargs.get('label',"")
 	
 	ymin=y.min()
 	ymax=y.max()
 	
 	ax=plt.gca()
-	prev_ymin,prev_ymax=ax.get_ylim()
+	#~ prev_ymin,prev_ymax=ax.get_ylim()
+	#~ print "Prev ymin",prev_ymin,"Prev ymax",prev_ymax
 	
 	ys=y.shape
 	try:
@@ -217,28 +250,37 @@ def plot1D(y,**kwargs):
 	else:					plt.xlim(xr)
 	
 	if yr is None:
-		if ymax>prev_ymax and ymin<prev_ymin:
-			plt.ylim(ymin,ymax)
-		elif ymax>prev_ymax and ymin>=prev_ymin:
-			plt.ylim(prev_ymin,ymax)
-		elif ymax<=prev_ymax and ymin<prev_ymin:
-			plt.ylim(ymin,prev_ymax)
+		#~ if ymax>prev_ymax and ymin<prev_ymin:
+		ylowpad=(ymax-ymin)*0.15
+		yhighpad=(ymax-ymin)*0.15
+		plt.ylim(ymin-ylowpad,ymax+yhighpad)
+		#~ elif ymax>prev_ymax and ymin>=prev_ymin:
+			#~ plt.ylim(prev_ymin,ymax)
+		#~ elif ymax<=prev_ymax and ymin<prev_ymin:
+			#~ plt.ylim(ymin,prev_ymax)
 	elif yr[0] is None:
-		if ymin<prev_ymin:
-			plt.ylim(ymin,yr[0])
-		else:
-			plt.ylim(prev_ymin,yr[0])
+		ymax=yr[1]
+		ylowpad=(ymax-ymin)*0.15
+		yhighpad=(ymax-ymin)*0.15
+		#~ if ymin<prev_ymin:		
+		plt.ylim(ymin-ylowpad,ymax+yhighpad)
+		#~ else:
+		#~ plt.ylim(prev_ymin,yr[0])
 	elif yr[1] is None:
-		if ymax>prev_ymax:
-			plt.ylim(yr[0],ymax)
-		else:
-			plt.ylim(yr[0],prev_ymax)
+		ymin=yr[0]
+		ylowpad=(ymax-ymin)*0.15
+		yhighpad=(ymax-ymin)*0.15
+		#~ if ymax>prev_ymax:
+		plt.ylim(ymin-ylowpad,ymax+yhighpad)
+		#~ else:
+			#~ plt.ylim(yr[0],prev_ymax)
 	else:					plt.ylim(yr)
 	
 	if Ny>1:
 		print "Plotting columns of y"
 	
-	plt.plot(x,y,zorder=zorder)
+	plt.plot(x,y,zorder=zorder,label=label)
+	ax.ticklabel_format(axis='y', style='sci', scilimits=(-2,2))
 			
 	if xlabel: plt.xlabel(xlabel)
 	if ylabel: plt.ylabel(ylabel)
@@ -340,6 +382,7 @@ def drawline(**kwargs):
 	
 	ls=kwargs.get('ls','--')
 	col=kwargs.get('col','k')
+	col=kwargs.get('color',col)
 	
 	ax=plt.gca()
 	xl=ax.get_xlim()
@@ -427,7 +470,7 @@ def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
 
 def get_appropriate_colormap(vmin,vmax):
 	
-	positive_negative_cmap=cm.coolwarm
+	positive_negative_cmap=cm.RdBu_r
 	all_positive_cmap=cm.OrRd
 	all_negative_cmap=cm.Blues_r
 	
@@ -482,18 +525,34 @@ def center_range_around_zero(vmin,vmax,amin,amax):
 		print "Zero lies outside colorbar range, can't center around zero"
 	return vmin,vmax
 
-def set_axis_limits(xgrid,ygrid,xr,yr):
-	if xr is None:			plt.xlim(xgrid[0],xgrid[-1])
-	elif xr[0] is None:		plt.xlim(xgrid[0],xr[1])
-	elif xr[1] is None:		plt.xlim(xr[0],xgrid[-1])
-	else:					plt.xlim(xr)
+def set_axis_limits(xgrid,ygrid,xr,yr,xrpad=False,yrpad=False):
+	dx=xgrid[1]-xgrid[0]
+	dy=ygrid[1]-ygrid[0]
+	
+	if xr is None:	plt.xlim(xgrid[0],xgrid[-1])
+	elif xr[0] is None:		
+		if xrpad:	plt.xlim(xgrid[0],xr[1]+dx/2)
+		else:		plt.xlim(xgrid[0],xr[1])
+	elif xr[1] is None:		
+		if xrpad:	plt.xlim(xr[0]-dx/2,xgrid[-1])
+		else:		plt.xlim(xr[0],xgrid[-1])
+	else:
+		if xrpad:	plt.xlim(xr[0]-dx/2,xr[1]+dx/2)
+		else:       plt.xlim(xr[0],xr[1])
 		
-	if yr is None:			plt.ylim(ygrid[0],ygrid[-1])
-	elif yr[0] is None:		plt.ylim(ygrid[0],yr[0])
-	elif yr[1] is None:		plt.ylim(yr[0],ygrid[-1])
-	else:					plt.ylim(yr)
+	if yr is None:			
+		plt.ylim(ygrid[0],ygrid[-1])
+	elif yr[0] is None:		
+		if yrpad: 	plt.ylim(ygrid[0],yr[0]+dy/2)
+		else:		plt.ylim(ygrid[0],yr[0])
+	elif yr[1] is None:		
+		if yrpad: 	plt.ylim(yr[0]-dy/2,ygrid[-1])
+		else:		plt.ylim(yr[0],ygrid[-1])
+	else:			
+		if yrpad:	plt.ylim(yr[0]-dy/2,yr[1]+dy/2)
+		else:		plt.ylim(yr[0],yr[1])
 
-def generate_colorbar(mappable=None,colorbar_scientific=False):
+def generate_colorbar(mappable=None,colorbar_scientific=False,cbar_title=None):
 	
 	if mappable is not None:
 		if colorbar_scientific:
@@ -508,6 +567,10 @@ def generate_colorbar(mappable=None,colorbar_scientific=False):
 	tick_locator = ticker.MaxNLocator(nbins=5)
 	cb.locator = tick_locator
 	cb.update_ticks()
+	
+	if cbar_title:
+		cax=cb.ax
+		cax.text(-0.5,1.01,cbar_title,rotation=0)
 	
 	return cb
 	
