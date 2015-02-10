@@ -1,14 +1,23 @@
 from __future__ import division
-from matplotlib import ticker,cm,colors,pyplot as plt
+from matplotlib import ticker,cm,colors,pyplot as plt,rcParams
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 
+rcParams['legend.fontsize'] = 'small'
+
+
+plot=plt.plot
+gcf=plt.gcf
+gca=plt.gca
 show=plt.show
 legend=plt.legend
 figure=plt.figure
 hline=hlines=plt.hlines
 vline=vlines=plt.vlines
 savefig=plt.savefig
+clf=plt.clf
+cla=plt.cla
+tight_layout=plt.tight_layout
 
 def colorplot(arr,**kwargs):
 	arr=np.squeeze(arr)
@@ -43,8 +52,19 @@ def colorplot(arr,**kwargs):
 	colorbar_title=kwargs.get('cbar_title',None)
 	colorbar_title=kwargs.get('colorbar_title',colorbar_title)
 	xlabel=kwargs.get('xlabel',None)
+	xlabel=kwargs.get('xl',xlabel)
+	xlabelsize=kwargs.get('xlabelsize',15)
+	xlabelsize=kwargs.get('xlsize',xlabelsize)
 	ylabel=kwargs.get('ylabel',None)
+	ylabel=kwargs.get('yl',ylabel)
+	ylabelsize=kwargs.get('ylabelsize',15)
+	ylabelsize=kwargs.get('ylsize',ylabelsize)
+	labelsize=kwargs.get('labelsize',None)
+	if labelsize is not None: 
+		xlabelsize=labelsize
+		ylabelsize=labelsize
 	title=kwargs.get('title',None)
+	title_fontsize=kwargs.get('title_fontsize',15)
 	cmap=kwargs.get('cmap',None)
 	zorder=kwargs.get('zorder',0)
 	centerzero=kwargs.get('centerzero',False)	
@@ -60,13 +80,15 @@ def colorplot(arr,**kwargs):
 	int_ticks2_y=kwargs.get('int_ticks2_y',True)
 	int_ticks2=kwargs.get('int_ticks2',True)
 	if int_ticks2: int_ticks2_x=int_ticks2_y=True
-	x1bins=kwargs.get('x1bins',10)
-	y1bins=kwargs.get('y1bins',10)
+	x1bins=kwargs.get('xbins',10)
+	y1bins=kwargs.get('ybins',10)
 	x2bins=kwargs.get('x2bins',5)
 	y2bins=kwargs.get('y2bins',5)
 	polar=kwargs.get('polar',False)
-	rasterized=kwargs.get('rasterized',False)
+	rasterized=kwargs.get('rasterized',True)
+	usetex=kwargs.get('usetex',False)
 	
+	if usetex: texfonts()
 	
 	amin=arr.min()
 	amax=arr.max()
@@ -127,27 +149,15 @@ def colorplot(arr,**kwargs):
 			print "Length of x array is "+str(Nx)+", required size is",ash[1]
 			print "Length of y array is "+str(Ny)+", required size is",ash[0]
 			return
-	
-	#~ Shift axis grid from boundaries to centers of grid squares
-	#~ dx=x[-1]-x[-2];dy=y[-1]-y[-2]
-	#~ xlast=x[-1]+dx;ylast=y[-1]+dy
-#~ 
-	#~ Boundary trick from http://alex.seeholzer.de/2014/05/fun-with-matplotlib-pcolormesh-getting-data-to-display-in-the-right-position/
-	#~ xgrid=np.insert(x,len(x),xlast)-dx/2
-	#~ ygrid=np.insert(y,len(y),ylast)-dy/2
-	
+		
 	xgrid,ygrid=get_centered_grid_for_pcolormesh(x,y)
-	
-	#~ Don't need meshgrid
-	#~ Xax,Yax=np.meshgrid(xgrid,ygrid)
 
-	
-	#~ Set ranges of axis ticks
 	set_axis_limits(xgrid,ygrid,xr,yr,xrpad=xrpad,yrpad=yrpad)	
 	
 	if int_ticks_x: ax.get_xaxis().set_major_locator(ticker.MaxNLocator(nbins=x1bins,integer=True))
+	else: ax.get_xaxis().set_major_locator(ticker.MaxNLocator(nbins=x1bins))
 	if int_ticks_y: ax.get_yaxis().set_major_locator(ticker.MaxNLocator(nbins=y1bins,integer=True))
-	
+	else: ax.get_yaxis().set_major_locator(ticker.MaxNLocator(nbins=y1bins))
 	
 	#~ Take care of empty colorbar range
 	if vmin==vmax: 		
@@ -158,11 +168,8 @@ def colorplot(arr,**kwargs):
 	
 	#~ Actual plot
 	if cmap is None: cmap=get_appropriate_colormap(vmin,vmax)
-	#~ p=plt.pcolormesh(Xax,Yax,arr,cmap=cmap,vmin=vmin,vmax=vmax,zorder=zorder,rasterized=rasterized)
-	#~ Axes can be 1D
+
 	p=plt.pcolormesh(xgrid,ygrid,arr,cmap=cmap,vmin=vmin,vmax=vmax,zorder=zorder,rasterized=rasterized)
-	
-	
 	
 	if colorbar: cb=generate_colorbar(colorbar_scientific=colorbar_scientific,
 	cbar_title=colorbar_title)	
@@ -195,9 +202,14 @@ def colorplot(arr,**kwargs):
 		tick.set_pad(ytickpad)
 		tick.label1 = tick._get_text1()
 	
-	if xlabel: ax.set_xlabel(xlabel)
-	if ylabel: ax.set_ylabel(ylabel)
-	if title:  ax.set_title(title)
+	plt.gca().ticklabel_format(axis='both', style='sci', scilimits=(-3,3))
+	
+	if xlabel: ax.set_xlabel(xlabel,fontsize=xlabelsize)
+	if ylabel: ax.set_ylabel(ylabel,fontsize=ylabelsize)
+	if title:  ax.set_title(title,fontsize=title_fontsize)
+	
+
+		
 		
 def plot1D(y,**kwargs):
 	
@@ -211,13 +223,27 @@ def plot1D(y,**kwargs):
 	yr=kwargs.get('yr',None)
 	xr=kwargs.get('xlim',xr)
 	yr=kwargs.get('ylim',yr)
-	subplot_index=kwargs.get('subplot_index',111)
+	subplot_index=kwargs.get('sp',111)
+	subplot_index=kwargs.get('subplot_index',subplot_index)
 	if not subplot_index_is_valid(subplot_index): return
 	xlabel=kwargs.get('xlabel',None)
 	ylabel=kwargs.get('ylabel',None)
 	title=kwargs.get('title',None)
 	zorder=kwargs.get('zorder',0)
 	label=kwargs.get('label',"")
+	linestyle=kwargs.get('linestyle','solid')
+	linestyle=kwargs.get('ls',linestyle)
+	marker=kwargs.get('marker',"")
+	marker=kwargs.get('markerstyle',marker)
+	marker=kwargs.get('markertype',marker)
+	marker=kwargs.get('m',marker)
+	marker=kwargs.get('pointstyle',marker)
+	marker=kwargs.get('pointtype',marker)
+	marker=kwargs.get('pt',marker)
+	markersize=kwargs.get('markersize',5)
+	markersize=kwargs.get('ms',markersize)
+	markersize=kwargs.get('pointsize',markersize)
+	markersize=kwargs.get('ps',markersize)
 	
 	ymin=y.min()
 	ymax=y.max()
@@ -279,8 +305,10 @@ def plot1D(y,**kwargs):
 	if Ny>1:
 		print "Plotting columns of y"
 	
-	plt.plot(x,y,zorder=zorder,label=label)
-	ax.ticklabel_format(axis='y', style='sci', scilimits=(-2,2))
+	plt.plot(x,y,zorder=zorder,label=label,linestyle=linestyle,
+	marker=marker,markersize=markersize)
+	ax=plt.gca()
+	ax.ticklabel_format(axis='both', style='sci', scilimits=(-2,2))
 			
 	if xlabel: plt.xlabel(xlabel)
 	if ylabel: plt.ylabel(ylabel)
@@ -543,8 +571,8 @@ def set_axis_limits(xgrid,ygrid,xr,yr,xrpad=False,yrpad=False):
 	if yr is None:			
 		plt.ylim(ygrid[0],ygrid[-1])
 	elif yr[0] is None:		
-		if yrpad: 	plt.ylim(ygrid[0],yr[0]+dy/2)
-		else:		plt.ylim(ygrid[0],yr[0])
+		if yrpad: 	plt.ylim(ygrid[0],yr[1]+dy/2)
+		else:		plt.ylim(ygrid[0],yr[1])
 	elif yr[1] is None:		
 		if yrpad: 	plt.ylim(yr[0]-dy/2,ygrid[-1])
 		else:		plt.ylim(yr[0],ygrid[-1])
@@ -561,7 +589,7 @@ def generate_colorbar(mappable=None,colorbar_scientific=False,cbar_title=None):
 			cb=plt.colorbar(mappable=mappable)
 	else:
 		if colorbar_scientific:
-			cb=plt.colorbar(format="%1.0e")
+			cb=plt.colorbar(format="%2.1e")
 		else:
 			cb=plt.colorbar()
 	tick_locator = ticker.MaxNLocator(nbins=5)
@@ -570,7 +598,7 @@ def generate_colorbar(mappable=None,colorbar_scientific=False,cbar_title=None):
 	
 	if cbar_title:
 		cax=cb.ax
-		cax.text(-0.5,1.01,cbar_title,rotation=0)
+		cax.text(-0.5,1.02,cbar_title,rotation=0,fontsize=15)
 	
 	return cb
 	
@@ -612,7 +640,11 @@ def subplot_index_is_valid(subplot_index):
 		return False
 	
 	return True
-	
 
+def texfonts():
+	rcParams['font.family'] = 'serif'
+	rcParams['font.serif'] = ['Helvetica']
+	rcParams['text.usetex'] = True
 
-
+def figuresize(width=6.5,height=5):
+	plt.gcf().set_size_inches(width,height)
