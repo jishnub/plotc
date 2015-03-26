@@ -12,12 +12,16 @@ gca=plt.gca
 show=plt.show
 legend=plt.legend
 figure=plt.figure
-hline=hlines=plt.hlines
-vline=vlines=plt.vlines
+#~ hline=hlines=plt.hlines
+#~ vline=vlines=plt.vlines
 savefig=plt.savefig
 clf=plt.clf
 cla=plt.cla
 tight_layout=plt.tight_layout
+#~ subplot=plt.subplot
+#~ quiver=plt.quiver
+#~ xlim=plt.xlim
+#~ ylim=plt.ylim
 
 def colorplot(arr,**kwargs):
 	arr=np.squeeze(arr)
@@ -84,10 +88,11 @@ def colorplot(arr,**kwargs):
 	y1bins=kwargs.get('ybins',10)
 	x2bins=kwargs.get('x2bins',5)
 	y2bins=kwargs.get('y2bins',5)
+	x_sci=kwargs.get('x_sci',True)
+	y_sci=kwargs.get('y_sci',True)
 	polar=kwargs.get('polar',False)
 	rasterized=kwargs.get('rasterized',True)
 	usetex=kwargs.get('usetex',False)
-	
 	if usetex: texfonts()
 	
 	amin=arr.min()
@@ -202,14 +207,104 @@ def colorplot(arr,**kwargs):
 		tick.set_pad(ytickpad)
 		tick.label1 = tick._get_text1()
 	
-	plt.gca().ticklabel_format(axis='both', style='sci', scilimits=(-3,3))
+	if x_sci:
+		ax.ticklabel_format(axis='x', style='sci', scilimits=(-3,3))
+	if y_sci:
+		ax.ticklabel_format(axis='y', style='sci', scilimits=(-3,3))
 	
 	if xlabel: ax.set_xlabel(xlabel,fontsize=xlabelsize)
 	if ylabel: ax.set_ylabel(ylabel,fontsize=ylabelsize)
 	if title:  ax.set_title(title,fontsize=title_fontsize)
 	
+	
+def quiver2D(U,V,**kwargs):
+	gridshape=U.shape
+	x=kwargs.get('x',np.linspace(0,10,gridshape[1]))
+	x2=kwargs.get('x2',None)	
+	y=kwargs.get('y',np.linspace(0,10,gridshape[0]))
+	y2=kwargs.get('y2',None)
+	every=kwargs.get('every',[1,1])
+	xr=kwargs.get('xr',None)
+	yr=kwargs.get('yr',None)
+	xr=kwargs.get('xlim',xr)
+	yr=kwargs.get('ylim',yr)
+	xrpad=kwargs.get('xrpad',False)
+	yrpad=kwargs.get('yrpad',False)
+	subplot_index=kwargs.get('sp',111)
+	subplot_index=kwargs.get('subplot',subplot_index)
+	subplot_index=kwargs.get('subplot_index',subplot_index)
+	if not subplot_index_is_valid(subplot_index): return
+	xlabel=kwargs.get('xlabel',None)
+	xlabel=kwargs.get('xl',xlabel)
+	xlabelsize=kwargs.get('xlabelsize',15)
+	xlabelsize=kwargs.get('xlsize',xlabelsize)
+	ylabel=kwargs.get('ylabel',None)
+	ylabel=kwargs.get('yl',ylabel)
+	ylabelsize=kwargs.get('ylabelsize',15)
+	ylabelsize=kwargs.get('ylsize',ylabelsize)
+	labelsize=kwargs.get('labelsize',None)
+	if labelsize is not None: 
+		xlabelsize=labelsize
+		ylabelsize=labelsize
+	title=kwargs.get('title',None)
+	title_fontsize=kwargs.get('title_fontsize',15)
+	xtickpad=kwargs.get('xtickpad',6.)
+	ytickpad=kwargs.get('ytickpad',6.)
+	int_ticks_x=kwargs.get('int_ticks_x',False)
+	int_ticks_y=kwargs.get('int_ticks_y',False)
+	int_ticks=kwargs.get('int_ticks',False)
+	if int_ticks: int_ticks_x=int_ticks_y=True
+	int_ticks2_x=kwargs.get('int_ticks2_x',True)
+	int_ticks2_y=kwargs.get('int_ticks2_y',True)
+	int_ticks2=kwargs.get('int_ticks2',True)
+	if int_ticks2: int_ticks2_x=int_ticks2_y=True
+	x1bins=kwargs.get('xbins',10)
+	y1bins=kwargs.get('ybins',10)
+	x2bins=kwargs.get('x2bins',5)
+	y2bins=kwargs.get('y2bins',5)
+	x_sci=kwargs.get('x_sci',True)
+	y_sci=kwargs.get('y_sci',True)
+	usetex=kwargs.get('usetex',False)
+	key=kwargs.get('key',False)
+	
+	color=kwargs.get('color','k')
+	
+	if usetex: texfonts()
+	
+	if int(subplot_index) ==111: plt.clf(); 
+	plt.subplot(subplot_index)
+	
+	#~ Actual plot
+	every_x=every[0]
+	every_y=every[1]
+	Q=plt.quiver(x[::every_x],y[::every_y],U[::every_y,::every_x],V[::every_y,::every_x],color=color)
+	ax=plt.gca()
+	fig=plt.gcf()
+	
+	if key:
+		mod=np.sqrt(U**2+V**2)
+		modmax=mod.max()*0.66	
+		modmax=int(np.floor(modmax/100)*100)		
+		plt.quiverkey(Q,0.8,1.02,modmax,str(modmax)+" Gauss",labelpos='N',
+		fontproperties={'size':14})
+	
+	set_axis_limits(x,y,xr,yr,xrpad=xrpad,yrpad=yrpad)
+	
+	if int_ticks_x: ax.get_xaxis().set_major_locator(ticker.MaxNLocator(nbins=x1bins,integer=True))
+	else: ax.get_xaxis().set_major_locator(ticker.MaxNLocator(nbins=x1bins))
+	if int_ticks_y: ax.get_yaxis().set_major_locator(ticker.MaxNLocator(nbins=y1bins,integer=True))
+	else: ax.get_yaxis().set_major_locator(ticker.MaxNLocator(nbins=y1bins))
+	
 
-		
+	if x_sci:
+		ax.ticklabel_format(axis='x', style='sci', scilimits=(-3,3))
+	if y_sci:
+		ax.ticklabel_format(axis='y', style='sci', scilimits=(-3,3))
+	
+	if xlabel: ax.set_xlabel(xlabel,fontsize=xlabelsize)
+	if ylabel: ax.set_ylabel(ylabel,fontsize=ylabelsize)
+	if title:  ax.set_title(title,fontsize=title_fontsize)
+	
 		
 def plot1D(y,**kwargs):
 	
@@ -228,11 +323,21 @@ def plot1D(y,**kwargs):
 	if not subplot_index_is_valid(subplot_index): return
 	xlabel=kwargs.get('xlabel',None)
 	ylabel=kwargs.get('ylabel',None)
+	xlabelsize=kwargs.get('xlabelsize',15)
+	xlabelsize=kwargs.get('xlsize',xlabelsize)
+	ylabelsize=kwargs.get('ylabelsize',15)
+	ylabelsize=kwargs.get('ylsize',ylabelsize)
+	labelsize=kwargs.get('labelsize',None)
+	if labelsize is not None: 
+		xlabelsize=labelsize
+		ylabelsize=labelsize
 	title=kwargs.get('title',None)
+	title_fontsize=kwargs.get('title_fontsize',15)
 	zorder=kwargs.get('zorder',0)
 	label=kwargs.get('label',"")
 	linestyle=kwargs.get('linestyle','solid')
 	linestyle=kwargs.get('ls',linestyle)
+	color=kwargs.get('color',None)
 	marker=kwargs.get('marker',"")
 	marker=kwargs.get('markerstyle',marker)
 	marker=kwargs.get('markertype',marker)
@@ -244,6 +349,8 @@ def plot1D(y,**kwargs):
 	markersize=kwargs.get('ms',markersize)
 	markersize=kwargs.get('pointsize',markersize)
 	markersize=kwargs.get('ps',markersize)
+	usetex=kwargs.get('usetex',False)
+	if usetex: texfonts()
 	
 	ymin=y.min()
 	ymax=y.max()
@@ -305,16 +412,24 @@ def plot1D(y,**kwargs):
 	if Ny>1:
 		print "Plotting columns of y"
 	
-	plt.plot(x,y,zorder=zorder,label=label,linestyle=linestyle,
-	marker=marker,markersize=markersize)
+	if color is None:
+		plt.plot(x,y,zorder=zorder,label=label,linestyle=linestyle,
+		marker=marker,markersize=markersize)
+	else:
+		plt.plot(x,y,zorder=zorder,label=label,linestyle=linestyle,
+		marker=marker,markersize=markersize,color=color)
 	ax=plt.gca()
 	ax.ticklabel_format(axis='both', style='sci', scilimits=(-2,2))
 			
-	if xlabel: plt.xlabel(xlabel)
-	if ylabel: plt.ylabel(ylabel)
-	if title:  plt.title(title)
+	if xlabel: ax.set_xlabel(xlabel,fontsize=xlabelsize)
+	if ylabel: ax.set_ylabel(ylabel,fontsize=ylabelsize)
+	if title:  ax.set_title(title,fontsize=title_fontsize)
 
 def sphericalplot(arr,**kwargs):
+	
+	print "Assuming latitude along axis 0 and longitude along axis 1."
+	print "If the plot looks all right you can safely ignore this warning."
+	print "Otherwise you might want to transpose your array."
 		
 	arr=np.squeeze(arr)
 	ash=arr.shape
@@ -357,10 +472,10 @@ def sphericalplot(arr,**kwargs):
 	ax=plt.subplot(subplot_index, projection='3d')
 	if centerzero:	vmin,vmax=center_range_around_zero(vmin,vmax,amin,amax)
 
-	u = kwargs.get('phi',np.linspace(0, 2 * np.pi, ash[1]))
-	v = kwargs.get('theta',np.linspace(0, np.pi, ash[0]))
+	phi = kwargs.get('phi',np.linspace(0, 2 * np.pi, ash[1]))
+	theta = kwargs.get('theta',np.linspace(0, np.pi, ash[0]))
 
-	lonax,latax=np.meshgrid(u,v)
+	lonax,latax=np.meshgrid(phi,theta)
 	
 	#~ Norm setting from http://stackoverflow.com/questions/25023075/normalizing-colormap-used-by-facecolors-in-matplotlib
 	norm = colors.Normalize(vmin=vmin,vmax=vmax)
@@ -371,9 +486,9 @@ def sphericalplot(arr,**kwargs):
 	scm.set_array(arr)
 	scm.set_clim(vmin,vmax)	
 
-	x = np.outer(np.sin(v),np.cos(u))
-	y = np.outer(np.sin(v),np.sin(u))
-	z = np.outer(np.cos(v),np.ones(np.size(u)))
+	x = np.outer(np.sin(theta),np.cos(phi))
+	y = np.outer(np.sin(theta),np.sin(phi))
+	z = np.outer(np.cos(theta),np.ones(np.size(phi)))
 	
 	#~ Actual plot
 	ax.plot_surface(x, y, z,  rstride=rstride, cstride=cstride,
@@ -404,6 +519,34 @@ def sphericalplot(arr,**kwargs):
 	ax.set_ylabel(ylabel)
 	ax.set_zlabel(zlabel)
 	if title:  plt.title(title)
+
+def drawvlines(x,**kwargs):
+	
+	ax=plt.gca()
+	yl=ax.get_ylim()
+	
+	ymin=kwargs.get('ymin',yl[0])
+	ymax=kwargs.get('ymax',yl[1])
+	colors=kwargs.get('colors','k')
+	linestyles=kwargs.get('linestyles','solid')
+	linestyles=kwargs.get('linestyle',linestyles)
+	linestyles=kwargs.get('ls',linestyles)
+	
+	plt.vlines(x,ymin,ymax,colors=colors,linestyles=linestyles)
+	plt.ylim(yl)
+	
+def drawhlines(y,**kwargs):
+	
+	ax=plt.gca()
+	xl=ax.get_xlim()
+	
+	xmin=kwargs.get('xmin',xl[0])
+	xmax=kwargs.get('xmax',xl[1])
+	colors=kwargs.get('colors','k')
+	linestyles=kwargs.get('linestyles','solid')
+	
+	plt.vlines(y,xmin,xmax,colors=colors,linestyles=linestyles)
+	plt.xlim(xl)
 
 def drawline(**kwargs):
 	
@@ -498,8 +641,8 @@ def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
 
 def get_appropriate_colormap(vmin,vmax):
 	
-	positive_negative_cmap=cm.RdBu_r
-	all_positive_cmap=cm.OrRd
+	all_positive_cmap=cm.OrRd	
+	positive_negative_cmap=cm.RdBu_r	
 	all_negative_cmap=cm.Blues_r
 	
 	if vmax>0 and (vmin*vmax>=0 or -vmin/vmax<2e-2): 
