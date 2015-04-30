@@ -179,7 +179,7 @@ def colorplot(arr,**kwargs):
     #~ Actual plot
     if cmap is None: cmap=get_appropriate_colormap(vmin,vmax)
 
-    p=ax.pcolormesh(xgrid,ygrid,arr,cmap=cmap,vmin=vmin,vmax=vmax,**pcolormesh_properties)
+    mesh=ax.pcolormesh(xgrid,ygrid,arr,cmap=cmap,vmin=vmin,vmax=vmax,**pcolormesh_properties)
     
     
     set_axis_limits(xgrid,ygrid,xr,yr,xrpad=xrpad,yrpad=yrpad,ax=ax)
@@ -187,6 +187,9 @@ def colorplot(arr,**kwargs):
     #~ Set scientific notation on colorbar for small or large values
     cbar_clip=max(abs(vmax),abs(vmin))
     if cbar_clip>1e4 or cbar_clip<1e-2: colorbar_properties['scientific']=True
+    
+    colorbar_properties['ax']=ax
+    colorbar_properties['mappable']=mesh
     
     if colorbar: cbax=generate_colorbar(**colorbar_properties)  
     else: cbax=None  
@@ -265,6 +268,9 @@ def quiver2D(U,V,**kwargs):
     ylabelproperties    =kwargs.get('ylabelproperties',{})
     xylabelproperties        =kwargs.get('xylabelproperties',{})
     
+    xlabelproperties.update(xylabelproperties)
+    ylabelproperties.update(xylabelproperties)
+    
     title                =kwargs.get('title',"")
     title_properties    =kwargs.get('title_properties',{})
     
@@ -328,7 +334,7 @@ def quiver2D(U,V,**kwargs):
         plt.quiverkey(Q,0.8,1.02,keyscale,keyprefix+str(keyscale)+keysuffix,labelpos='N',
         fontproperties={'size':14})
     
-    set_axis_limits(x,y,xr,yr,xrpad=xrpad,yrpad=yrpad)
+    set_axis_limits(x,y,xr,yr,xrpad=xrpad,yrpad=yrpad,ax=ax)
     
     ax.get_xaxis().set_major_locator(ticker.MaxNLocator(nbins=x1bins,integer=True if int_ticks_x else False))
     ax.get_yaxis().set_major_locator(ticker.MaxNLocator(nbins=y1bins,integer=True if int_ticks_y else False))
@@ -341,8 +347,8 @@ def quiver2D(U,V,**kwargs):
     if hide_xticklabels: ax.set_xticklabels([])
     if hide_yticklabels: ax.set_yticklabels([])
     
-    ax.set_xlabel(xlabel,**dict(chain.from_iterable([xlabelproperties,xylabelproperties])))
-    ax.set_ylabel(ylabel,**dict(chain.from_iterable([ylabelproperties,xylabelproperties])))
+    ax.set_xlabel(xlabel,**xlabelproperties)
+    ax.set_ylabel(ylabel,**ylabelproperties)
     ax.set_title(title,**title_properties)
     
     return ax
@@ -611,8 +617,13 @@ def drawvlines(x,**kwargs):
     
     kwargs['linestyles']=kwargs.get('linestyles',kwargs.pop('ls','solid'))
     kwargs['colors']=kwargs.get('colors',kwargs.pop('col','k'))
+    restore_ylim=kwargs.pop('restore_ylim',False)
     
-    return ax.vlines(x,ymin,ymax,**kwargs)
+    lines=ax.vlines(x,ymin,ymax,**kwargs)
+    
+    if restore_ylim: ax.set_ylim(yl)
+    
+    return ax,lines
     
 def drawhlines(y,**kwargs):
     
@@ -625,7 +636,7 @@ def drawhlines(y,**kwargs):
     kwargs['linestyles']=kwargs.get('linestyles',kwargs.pop('ls','solid'))
     kwargs['colors']=kwargs.get('colors',kwargs.pop('col','k'))
     
-    return ax.hlines(y,xmin,xmax,**kwargs)
+    return ax,ax.hlines(y,xmin,xmax,**kwargs)
 
 def drawline(**kwargs):
     
