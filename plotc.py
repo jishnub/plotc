@@ -613,7 +613,7 @@ def drawvlines(x,**kwargs):
     ymax=kwargs.pop('ymax',yl[1])
     
     kwargs['linestyles']=kwargs.get('linestyles',kwargs.pop('ls','solid'))
-    kwargs['_colors']=kwargs.get('_colors',kwargs.pop('col','k'))
+    kwargs['colors']=kwargs.get('colors',kwargs.pop('col','k'))
     restore_ylim=kwargs.pop('restore_ylim',False)
     
     lines=ax.vlines(x,ymin,ymax,**kwargs)
@@ -631,7 +631,7 @@ def drawhlines(y,**kwargs):
     xmax=kwargs.pop('xmax',xl[1])
     
     kwargs['linestyles']=kwargs.get('linestyles',kwargs.pop('ls','solid'))
-    kwargs['_colors']=kwargs.get('_colors',kwargs.pop('col','k'))
+    kwargs['colors']=kwargs.get('colors',kwargs.pop('col','k'))
     
     return ax,ax.hlines(y,xmin,xmax,**kwargs)
 
