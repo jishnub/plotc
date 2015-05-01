@@ -1,20 +1,10 @@
-from __future__ import division
-from matplotlib import ticker,cm,colors,pyplot as plt,rcParams
-import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
-
-plot=plt.plot
-gcf,gca=plt.gcf,plt.gca
-show=plt.show
-figure=plt.figure
-savefig=plt.savefig
-clf,cla=plt.clf,plt.cla
-tight_layout=plt.tight_layout
-subplots_adjust=plt.subplots_adjust
-subplot,subplots=plt.subplot,plt.subplots
+from __future__ import division as _division
+from matplotlib import ticker as _ticker,cm as _cm,colors as _colors,pyplot as plt,rcParams as _rcParams
+import numpy as _np
+from mpl_toolkits.mplot3d import Axes3D as _Axes3D
 
 def colorplot(arr,**kwargs):
-    arr                    	=np.squeeze(arr)
+    arr                    	=_np.squeeze(arr)
     ash                    	=arr.shape
     try: assert len(ash) == 2
     except AssertionError: 
@@ -24,7 +14,7 @@ def colorplot(arr,**kwargs):
     
     if arr.dtype=='complex128' or arr.dtype=='complex64':
         print "Ignoring imaginary part"
-        arr=np.real(arr)
+        arr=_np.real(arr)
     
     x						=kwargs.get('x',None)
     x2						=kwargs.get('x2',None)
@@ -35,24 +25,11 @@ def colorplot(arr,**kwargs):
     
     subplot_index			=kwargs.get('subplot_index',kwargs.get('subplot',kwargs.get('sp',111)))
     subplot_properties		=kwargs.get('subplot_properties',{})
-    if not subplot_index_is_valid(subplot_index): return
+    if not _subplot_index_is_valid(subplot_index): return
     
     colorbar           	 	=kwargs.get('colorbar',True)
     colorbar_properties		=kwargs.get('colorbar_properties',{})
     centerzero				=kwargs.get('centerzero',False) 
-    
-    xlabel					=kwargs.get('xl',kwargs.get('xlabel',""))
-    ylabel					=kwargs.get('yl',kwargs.get('ylabel',""))
-    xlabelproperties		=kwargs.get('xlabelproperties',{})
-    ylabelproperties		=kwargs.get('ylabelproperties',{})
-    xylabelproperties		=kwargs.get('xylabelproperties',{})
-    
-    xlabelproperties.update(xylabelproperties)
-    ylabelproperties.update(xylabelproperties)
-    
-    
-    title=kwargs.get('title',"")
-    title_properties=kwargs.get('title_properties',{})
     
     cmap					=kwargs.get('cmap',None)
     
@@ -97,13 +74,7 @@ def colorplot(arr,**kwargs):
     locator_properties_y.update(locator_properties_xy)
     locator_properties_x2.update(locator_properties_x2y2)
     locator_properties_y2.update(locator_properties_x2y2)
-    
-    
-    def getlocator(tick_locator):
-			if tick_locator=='linear': return ticker.LinearLocator
-			elif tick_locator=='fixed': return ticker.LinearLocator
-			else: return ticker.MaxNLocator
-    
+        
     polar					=subplot_properties.get('polar',False)
     if polar: 
         print "Note: Assuming x is theta and y is r"
@@ -111,7 +82,7 @@ def colorplot(arr,**kwargs):
         print "If plot looks weird you might want to specify x and y"
     
     usetex					=kwargs.get('usetex',False)
-    if usetex:				texfonts()
+    if usetex:				_texfonts()
     
     amin=arr.min()
     amax=arr.max()
@@ -119,7 +90,7 @@ def colorplot(arr,**kwargs):
     vmin					=kwargs.get('vmin',amin)
     vmax					=kwargs.get('vmax',amax)
     
-    if centerzero:        	vmin,vmax=center_range_around_zero(vmin,vmax,amin,amax)
+    if centerzero:        	vmin,vmax=_center_range_around_zero(vmin,vmax,amin,amax)
 
     ax						=kwargs.get('ax',None)
     if ax is None:
@@ -127,20 +98,18 @@ def colorplot(arr,**kwargs):
 			plt.clf()
         ax=plt.subplot(subplot_index,**subplot_properties)
     
-
-    
     #~ Set scientific notation on colorbar for small or large values
     cbar_clip=max(abs(vmax),abs(vmin))
     if cbar_clip>1e4 or cbar_clip<1e-2: colorbar_scientific=True
     
     #~ Define the coordinate grid, if unspecified
     if x is None and y is None:
-        x=np.arange(ash[1])
-        y=np.arange(ash[0])
+        x=_np.arange(ash[1])
+        y=_np.arange(ash[0])
     elif x is None and y is not None:
-        x=np.arange(ash[1])
+        x=_np.arange(ash[1])
     elif x is not None and y is None:
-        y=np.arange(ash[0])
+        y=_np.arange(ash[0])
     
     #~ Change 2D coordinate meshgrids to 1D
     if len(x.shape) == 2:    x=x[0]
@@ -168,7 +137,7 @@ def colorplot(arr,**kwargs):
             print "Length of y array is "+str(Ny)+", required size is",ash[0]
             return
         
-    xgrid,ygrid=get_centered_grid_for_pcolormesh(x,y)
+    xgrid,ygrid=_get_centered_grid_for_pcolormesh(x,y)
 
     #~ Take care of empty colorbar range
     if vmin==vmax:         
@@ -177,12 +146,12 @@ def colorplot(arr,**kwargs):
         colorbar_scientific=True
     
     #~ Actual plot
-    if cmap is None: cmap=get_appropriate_colormap(vmin,vmax)
+    if cmap is None: cmap=_get_appropriate_colormap(vmin,vmax)
 
     mesh=ax.pcolormesh(xgrid,ygrid,arr,cmap=cmap,vmin=vmin,vmax=vmax,**pcolormesh_properties)
     
     
-    set_axis_limits(xgrid,ygrid,xr,yr,xrpad=xrpad,yrpad=yrpad,ax=ax)
+    _set_axis_limits(xgrid,ygrid,xr,yr,xrpad=xrpad,yrpad=yrpad,ax=ax)
     
     #~ Set scientific notation on colorbar for small or large values
     cbar_clip=max(abs(vmax),abs(vmin))
@@ -191,27 +160,27 @@ def colorplot(arr,**kwargs):
     colorbar_properties['ax']=ax
     colorbar_properties['mappable']=mesh
     
-    if colorbar: cbax=generate_colorbar(**colorbar_properties)  
+    if colorbar: cbax=_generate_colorbar(**colorbar_properties)  
     else: cbax=None  
     
     if x2 is not None: 
         ax2=plt.twiny(ax=ax)
         dx=x2[1]-x2[0]
-        x2,_=get_centered_grid_for_pcolormesh(x=x2,y=None)
+        x2,_=_get_centered_grid_for_pcolormesh(x=x2,y=None)
         
         ax2.set_xlim(x2[0],x2[-1])
         
-        ax2.get_xaxis().set_major_locator(ticker.MaxNLocator(nbins=x2bins,integer=True if int_ticks_x2 else False))
+        ax2.get_xaxis().set_major_locator(_ticker.MaxNLocator(nbins=x2bins,integer=True if int_ticks_x2 else False))
         if hide_x2ticks: ax2.set_xticks([])
         if hide_x2ticklabels: ax2.set_xticklabels([])
         
     if y2 is not None: 
         ax2=plt.twinx(ax=ax)
-        _,y2=get_centered_grid_for_pcolormesh(x=None,y=y2)
+        _,y2=_get_centered_grid_for_pcolormesh(x=None,y=y2)
         
         ax2.set_ylim(y2[0],y2[-1])
         
-        if int_ticks_y2: ax2.get_yaxis().set_major_locator(ticker.MaxNLocator(nbins=y2bins,integer=True))
+        if int_ticks_y2: ax2.get_yaxis().set_major_locator(_ticker.MaxNLocator(nbins=y2bins,integer=True))
         if hide_y2ticks: ax2.set_yticks([])
         if hide_y2ticklabels: ax2.set_yticklabels([])
     
@@ -221,7 +190,7 @@ def colorplot(arr,**kwargs):
     
     if hide_xticks: ax.set_xticks([])
     else: 
-		ax.get_xaxis().set_major_locator(getlocator(xtick_locator)(**locator_properties_x))
+		ax.get_xaxis().set_major_locator(_getlocator(xtick_locator)(**locator_properties_x))
 		if x_sci:    ax.ticklabel_format(axis='x', style='sci', scilimits=xscilimits)
 		for tick in ax.get_xaxis().get_major_ticks():
 			tick.set_pad(xtickpad)
@@ -229,7 +198,7 @@ def colorplot(arr,**kwargs):
 
     if hide_yticks: ax.set_yticks([])
     else: 
-		ax.get_yaxis().set_major_locator(getlocator(ytick_locator)(**locator_properties_y))
+		ax.get_yaxis().set_major_locator(_getlocator(ytick_locator)(**locator_properties_y))
 		if y_sci:    ax.ticklabel_format(axis='y', style='sci', scilimits=yscilimits)
 		for tick in ax.get_yaxis().get_major_ticks():
 			tick.set_pad(ytickpad)
@@ -238,17 +207,35 @@ def colorplot(arr,**kwargs):
     if hide_xticklabels: ax.set_xticklabels([])
     if hide_yticklabels: ax.set_yticklabels([])
     
+    xlabel					=kwargs.get('xl',kwargs.get('xlabel',ax.get_xlabel()))
+    ylabel					=kwargs.get('yl',kwargs.get('ylabel',ax.get_ylabel()))
+    xlabelproperties		=kwargs.get('xlabelproperties',{})
+    ylabelproperties		=kwargs.get('ylabelproperties',{})
+    xylabelproperties		=kwargs.get('xylabelproperties',{})
+    
+    xlabel 					=axes_properties.get('xlabel',axes_properties.get('xl',xlabel))
+    ylabel 					=axes_properties.get('ylabel',axes_properties.get('xl',ylabel))
+    
+    xlabelproperties.update(xylabelproperties)
+    ylabelproperties.update(xylabelproperties)
+    
     ax.set_xlabel(xlabel,**xlabelproperties)
     ax.set_ylabel(ylabel,**ylabelproperties)
+    
+    
+    
+    title                   =kwargs.get('title',ax.get_title())
+    title 					=axes_properties.get('title',title)
+    title_properties        =kwargs.get('title_properties',{})
     ax.set_title(title,**title_properties)
     
     return ax,cbax
     
 def quiver2D(U,V,**kwargs):
     gridshape            =U.shape
-    x                    =kwargs.get('x',np.linspace(0,10,gridshape[1]))
+    x                    =kwargs.get('x',_np.linspace(0,10,gridshape[1]))
     x2                    =kwargs.get('x2',None)    
-    y                    =kwargs.get('y',np.linspace(0,10,gridshape[0]))
+    y                    =kwargs.get('y',_np.linspace(0,10,gridshape[0]))
     y2                    =kwargs.get('y2',None)
     
     quiver_properties    =kwargs.get('quiver_properties',{})
@@ -260,21 +247,10 @@ def quiver2D(U,V,**kwargs):
     
     subplot_index        =kwargs.get('subplot_index',kwargs.get('subplot',kwargs.get('sp',111)))
     subplot_properties    =kwargs.get('subplot_properties',{})
-    if not subplot_index_is_valid(subplot_index): return
-
-    xlabel                =kwargs.get('xl',kwargs.get('xlabel',""))
-    ylabel                =kwargs.get('yl',kwargs.get('ylabel',""))
-    xlabelproperties    =kwargs.get('xlabelproperties',{})
-    ylabelproperties    =kwargs.get('ylabelproperties',{})
-    xylabelproperties        =kwargs.get('xylabelproperties',{})
-    
-    xlabelproperties.update(xylabelproperties)
-    ylabelproperties.update(xylabelproperties)
-    
-    title                =kwargs.get('title',"")
-    title_properties    =kwargs.get('title_properties',{})
+    if not _subplot_index_is_valid(subplot_index): return
     
     axes_properties        =kwargs.get('axes_properties',{})
+    
     
     xrpad                =axes_properties.get('xrpad',False)
     yrpad                =axes_properties.get('yrpad',False)
@@ -315,7 +291,7 @@ def quiver2D(U,V,**kwargs):
     keyprefix            =key_properties.get('keyprefix',"")
     keysuffix            =key_properties.get('keysuffix',"")
     
-    if usetex: texfonts()
+    if usetex: _texfonts()
     
     ax=kwargs.get('ax',None)
     if ax is None:
@@ -328,16 +304,16 @@ def quiver2D(U,V,**kwargs):
     
     if key:
         if keyscale is None:
-            mod=np.sqrt(U**2+V**2)
+            mod=_np.sqrt(U**2+V**2)
             keyscale=mod.max()*0.66    
-            keyscale=int(np.floor(keyscale/100)*100)
+            keyscale=int(_np.floor(keyscale/100)*100)
         plt.quiverkey(Q,0.8,1.02,keyscale,keyprefix+str(keyscale)+keysuffix,labelpos='N',
         fontproperties={'size':14})
     
-    set_axis_limits(x,y,xr,yr,xrpad=xrpad,yrpad=yrpad,ax=ax)
+    _set_axis_limits(x,y,xr,yr,xrpad=xrpad,yrpad=yrpad,ax=ax)
     
-    ax.get_xaxis().set_major_locator(ticker.MaxNLocator(nbins=x1bins,integer=True if int_ticks_x else False))
-    ax.get_yaxis().set_major_locator(ticker.MaxNLocator(nbins=y1bins,integer=True if int_ticks_y else False))
+    ax.get_xaxis().set_major_locator(_ticker.MaxNLocator(nbins=x1bins,integer=True if int_ticks_x else False))
+    ax.get_yaxis().set_major_locator(_ticker.MaxNLocator(nbins=y1bins,integer=True if int_ticks_y else False))
 
     if x_sci:
         ax.ticklabel_format(axis='x', style='sci', scilimits=(-3,3))
@@ -347,50 +323,50 @@ def quiver2D(U,V,**kwargs):
     if hide_xticklabels: ax.set_xticklabels([])
     if hide_yticklabels: ax.set_yticklabels([])
     
-    ax.set_xlabel(xlabel,**xlabelproperties)
-    ax.set_ylabel(ylabel,**ylabelproperties)
-    ax.set_title(title,**title_properties)
+    xlabel					=kwargs.get('xl',kwargs.get('xlabel',ax.get_xlabel()))
+    ylabel					=kwargs.get('yl',kwargs.get('ylabel',ax.get_ylabel()))
+    xlabelproperties		=kwargs.get('xlabelproperties',{})
+    ylabelproperties		=kwargs.get('ylabelproperties',{})
+    xylabelproperties		=kwargs.get('xylabelproperties',{})
     
-    return ax
-    
-quiver2d=quiver2D
-        
-def plot1D(arr,**kwargs):
-    
-    try: arr=np.array(arr)
-    except:
-        print "Require array like object to plot"
-        return
-    
-    plot_properties=kwargs.get('plot_properties',{})
-    
-    x=kwargs.get('x',None)
-    xr=kwargs.get('xlim',kwargs.get('xr',None))
-    yr=kwargs.get('ylim',kwargs.get('yr',None))
-
-    subplot_index			=kwargs.get('subplot_index',kwargs.get('subplot',kwargs.get('sp',None)))
-    subplot_properties		=kwargs.get('subplot_properties',{})
-    
-    xlabel					=kwargs.get('xl',kwargs.get('xlabel',""))
-    ylabel                  =kwargs.get('yl',kwargs.get('ylabel',""))
-    xlabelproperties        =kwargs.get('xlabelproperties',{})
-    ylabelproperties        =kwargs.get('ylabelproperties',{})
-    xylabelproperties       =kwargs.get('xylabelproperties',{})
+    xlabel 					=axes_properties.get('xlabel',axes_properties.get('xl',xlabel))
+    ylabel 					=axes_properties.get('ylabel',axes_properties.get('xl',ylabel))
     
     xlabelproperties.update(xylabelproperties)
     ylabelproperties.update(xylabelproperties)
     
-    title					=kwargs.get('title',"")
-    title_properties		=kwargs.get('title_properties',{})
+    ax.set_xlabel(xlabel,**xlabelproperties)
+    ax.set_ylabel(ylabel,**ylabelproperties)
     
-    usetex					=kwargs.get('usetex',False)
-    if usetex:				texfonts()
+    title                   =kwargs.get('title',ax.get_title())
+    title 					=axes_properties.get('title',title)
+    title_properties        =kwargs.get('title_properties',{})
+    ax.set_title(title,**title_properties)
+    
+    return ax
+        
+def plot1D(arr,**kwargs):
+    
+    try: arr=_np.array(arr)
+    except:
+        print "Require array like object to plot"
+        return
+    
+    plot_properties         =kwargs.get('plot_properties',{})
+    
+    x=kwargs.get('x',None)
+    xr=kwargs.get('xlim',kwargs.get('xr',None))
+    yr=kwargs.get('ylim',kwargs.get('yr',None))
     
     ax						=kwargs.get('ax',None)
+
+    subplot_index			=kwargs.get('subplot_index',kwargs.get('subplot',kwargs.get('sp',None)))
+    subplot_properties		=kwargs.get('subplot_properties',{})
+
+    usetex					=kwargs.get('usetex',False)
+    if usetex:				_texfonts()
+
     axes_properties			=kwargs.get('axes_properties',{})
-    
-    xlabel 					=axes_properties.get('xlabel',axes_properties.get('xl',xlabel))
-    ylabel 					=axes_properties.get('ylabel',axes_properties.get('xl',ylabel))
     
     x_sci					=axes_properties.get('x_sci',True)
     y_sci					=axes_properties.get('y_sci',True)
@@ -423,11 +399,6 @@ def plot1D(arr,**kwargs):
     locator_properties_y.update(locator_properties_xy)
     locator_properties_x2.update(locator_properties_x2y2)
     locator_properties_y2.update(locator_properties_x2y2)
-    
-    def getlocator(tick_locator):
-			if tick_locator=='linear': return ticker.LinearLocator
-			elif tick_locator=='fixed': return ticker.LinearLocator
-			else: return ticker.MaxNLocator
     
     int_ticks_x				=locator_properties_x.get('int_ticks_x',False)
     int_ticks_y				=locator_properties_y.get('int_ticks_y',False)
@@ -462,14 +433,14 @@ def plot1D(arr,**kwargs):
     if ax is None and subplot_index is None:
     	ax=plt.gca()
     elif ax is None and subplot_index is not None:
-        if not subplot_index_is_valid(subplot_index): return
+        if not _subplot_index_is_valid(subplot_index): return
         ax=plt.subplot(subplot_index,**subplot_properties)        
     if ax.has_data():		
         ylim_original=ax.get_ylim()
         xlim_original=ax.get_xlim()
 		
         
-    if x is None:    x=np.arange(Npts)    
+    if x is None:    x=_np.arange(Npts)    
     
     if Ny>1: print "Plotting columns of y"
     
@@ -480,28 +451,46 @@ def plot1D(arr,**kwargs):
     
     if hide_xticks: ax.set_xticks([])
     else: 
-		ax.get_xaxis().set_major_locator(getlocator(xtick_locator)(**locator_properties_x))
+		ax.get_xaxis().set_major_locator(_getlocator(xtick_locator)(**locator_properties_x))
 		if x_sci:    ax.ticklabel_format(axis='x', style='sci', scilimits=xscilimits)
 
     if hide_yticks: ax.set_yticks([])
     else: 
-		ax.get_yaxis().set_major_locator(getlocator(ytick_locator)(**locator_properties_y))
+		ax.get_yaxis().set_major_locator(_getlocator(ytick_locator)(**locator_properties_y))
 		if y_sci:    ax.ticklabel_format(axis='y', style='sci', scilimits=yscilimits)
 		
-    set_axis_limits(x,arr,xr,yr,dim=1,ax=ax,xlim_original=xlim_original,ylim_original=ylim_original)
+    _set_axis_limits(x,arr,xr,yr,dim=1,ax=ax,xlim_original=xlim_original,ylim_original=ylim_original)
 		
     if hide_xticklabels: ax.set_xticklabels([])
     if hide_yticklabels: ax.set_yticklabels([])
-            
+    
+    
+    xlabel					=kwargs.get('xl',kwargs.get('xlabel',ax.get_xlabel()))
+    ylabel					=kwargs.get('yl',kwargs.get('ylabel',ax.get_ylabel()))
+    xlabelproperties        =kwargs.get('xlabelproperties',{})
+    ylabelproperties        =kwargs.get('ylabelproperties',{})
+    xylabelproperties       =kwargs.get('xylabelproperties',{})
+    
+    xlabel 					=axes_properties.get('xlabel',axes_properties.get('xl',xlabel))
+    ylabel 					=axes_properties.get('ylabel',axes_properties.get('xl',ylabel))
+    
+    xlabelproperties.update(xylabelproperties)
+    ylabelproperties.update(xylabelproperties)
+    
     ax.set_xlabel(xlabel,**xlabelproperties)
     ax.set_ylabel(ylabel,**ylabelproperties)
+    
+    title					=kwargs.get('title',ax.get_title())
+    title 					=axes_properties.get('title',title)
+    title_properties		=kwargs.get('title_properties',{})
+    
     ax.set_title(title,**title_properties)
     
     return ax
 
 def sphericalplot(arr,**kwargs):
         
-    arr=np.squeeze(arr)
+    arr=_np.squeeze(arr)
     ash=arr.shape
     try: assert len(ash) == 2
     except AssertionError: 
@@ -515,29 +504,18 @@ def sphericalplot(arr,**kwargs):
     
     if arr.dtype=='complex128' or arr.dtype=='complex64':
         print "Ignoring imaginary part"
-        arr=np.real(arr)
+        arr=_np.real(arr)
     
     amin                =arr.min()
     amax                =arr.max()
     vmin                =kwargs.get('vmin',amin)
     vmax                =kwargs.get('vmax',amax)
     subplot_index        =kwargs.get('subplot_index',kwargs.get('subplot',kwargs.get('sp',111)))
-    if not subplot_index_is_valid(subplot_index): return
+    if not _subplot_index_is_valid(subplot_index): return
     
     colorbar            =kwargs.get('colorbar',True)
     colorbar_properties    =kwargs.get('colorbar_properties',{})
     centerzero            =colorbar_properties.pop('centerzero',False)
-    
-    xlabel                =kwargs.get('xl',kwargs.get('xlabel',""))
-    ylabel                =kwargs.get('yl',kwargs.get('ylabel',""))
-    zlabel                =kwargs.get('zlabel',kwargs.get('zlabel',""))
-    xlabelproperties    =kwargs.get('xlabelproperties',{})
-    ylabelproperties    =kwargs.get('ylabelproperties',{})
-    zlabelproperties    =kwargs.get('zlabelproperties',{})
-    xylabelproperties        =kwargs.get('xylabelproperties',{})
-    
-    title                =kwargs.get('title',None)
-    title_properties    =kwargs.get('title_properties',{})
     
     cmap                =kwargs.get('cmap',None)
     
@@ -552,7 +530,7 @@ def sphericalplot(arr,**kwargs):
     sphere['rstride']    =sphere.get('rstride',int(ash[0]/50))
     sphere['cstride']    =sphere.get('cstride',int(ash[1]/50))
     sphere['shade']        =sphere.get('shade',False)
-    azim                =sphere.get('azim',360/ash[1]*np.argmax(abs(arr))%ash[1])
+    azim                =sphere.get('azim',360/ash[1]*_np.argmax(abs(arr))%ash[1])
     elev                =sphere.get('elev',10)
     dist                =sphere.get('dist',10)
         
@@ -562,25 +540,25 @@ def sphericalplot(arr,**kwargs):
         ax=plt.subplot(subplot_index, projection='3d')
     
     
-    if centerzero:    vmin,vmax=center_range_around_zero(vmin,vmax,amin,amax)
+    if centerzero:    vmin,vmax=_center_range_around_zero(vmin,vmax,amin,amax)
 
-    phi                    =kwargs.get('phi',np.linspace(0, 2 * np.pi, ash[1]))
-    theta                =kwargs.get('theta',np.linspace(0, np.pi, ash[0]))
+    phi                    =kwargs.get('phi',_np.linspace(0, 2 * _np.pi, ash[1]))
+    theta                =kwargs.get('theta',_np.linspace(0, _np.pi, ash[0]))
 
-    lonax,latax=np.meshgrid(phi,theta)
+    lonax,latax=_np.meshgrid(phi,theta)
     
     #~ Norm setting from http://stackoverflow.com/questions/25023075/normalizing-colormap-used-by-facecolors-in-matplotlib
-    norm = colors.Normalize(vmin=vmin,vmax=vmax)
+    norm = _colors.Normalize(vmin=vmin,vmax=vmax)
 
-    cmap=get_appropriate_colormap(vmin,vmax)
+    cmap=_get_appropriate_colormap(vmin,vmax)
 
-    scm=cm.ScalarMappable(cmap=cmap)
+    scm=_cm.ScalarMappable(cmap=cmap)
     scm.set_array(arr)
     scm.set_clim(vmin,vmax)    
 
-    x = np.outer(np.sin(theta),np.cos(phi))
-    y = np.outer(np.sin(theta),np.sin(phi))
-    z = np.outer(np.cos(theta),np.ones(np.size(phi)))
+    x = _np.outer(_np.sin(theta),_np.cos(phi))
+    y = _np.outer(_np.sin(theta),_np.sin(phi))
+    z = _np.outer(_np.cos(theta),_np.ones(_np.size(phi)))
     
     #~ Actual plot
     ax.plot_surface(x, y, z, facecolors=cmap(norm(arr)),**sphere)
@@ -593,16 +571,35 @@ def sphericalplot(arr,**kwargs):
     cbar_clip=max(abs(vmax),abs(vmin))
     if cbar_clip>1e4 or cbar_clip<1e-2: colorbar_properties['scientific']=True
     colorbar_properties['mappable']=scm    
-    if colorbar: cbax=generate_colorbar(**colorbar_properties)
+    if colorbar: cbax=_generate_colorbar(**colorbar_properties)
     else: cbax=None
 
     if flipx: ax.invert_xaxis()
     if flipy: ax.invert_yaxis()
     if flipz: ax.invert_zaxis()
     
-    ax.set_xlabel(xlabel,**dict(chain.from_iterable([xlabelproperties,xylabelproperties])))
-    ax.set_ylabel(ylabel,**dict(chain.from_iterable([ylabelproperties,xylabelproperties])))
-    ax.set_zlabel(zlabel,**dict(chain.from_iterable([zlabelproperties,xylabelproperties])))
+    xlabel                =kwargs.get('xl',kwargs.get('xlabel',ax.get_xlabel()))
+    ylabel                =kwargs.get('yl',kwargs.get('ylabel',ax.get_ylabel()))
+    zlabel                =kwargs.get('zl',kwargs.get('zlabel',ax.get_zlabel()))
+    xlabel                =axes_properties.get('xl',axes_properties.get('xlabel',xlabel))
+    ylabel                =axes_properties.get('yl',axes_properties.get('ylabel',ylabel))
+    zlabel                =axes_properties.get('zl',axes_properties.get('zlabel',zlabel))
+    xlabelproperties      =kwargs.get('xlabelproperties',{})
+    ylabelproperties      =kwargs.get('ylabelproperties',{})
+    zlabelproperties      =kwargs.get('zlabelproperties',{})
+    xyzlabelproperties    =kwargs.get('xyzlabelproperties',{})
+    
+    xlabelproperties.update(xyzlabelproperties)
+    ylabelproperties.update(xyzlabelproperties)
+    zlabelproperties.update(xyzlabelproperties)
+    
+    ax.set_xlabel(xlabel,**xlabelproperties)
+    ax.set_ylabel(ylabel,**ylabelproperties)
+    ax.set_zlabel(zlabel,**zlabelproperties)
+    
+    title                =kwargs.get('title',ax.get_title())
+    title_properties     =kwargs.get('title_properties',{})
+    
     ax.set_title(title,**title_properties)
     
     return ax,cbax
@@ -616,7 +613,7 @@ def drawvlines(x,**kwargs):
     ymax=kwargs.pop('ymax',yl[1])
     
     kwargs['linestyles']=kwargs.get('linestyles',kwargs.pop('ls','solid'))
-    kwargs['colors']=kwargs.get('colors',kwargs.pop('col','k'))
+    kwargs['_colors']=kwargs.get('_colors',kwargs.pop('col','k'))
     restore_ylim=kwargs.pop('restore_ylim',False)
     
     lines=ax.vlines(x,ymin,ymax,**kwargs)
@@ -634,7 +631,7 @@ def drawhlines(y,**kwargs):
     xmax=kwargs.pop('xmax',xl[1])
     
     kwargs['linestyles']=kwargs.get('linestyles',kwargs.pop('ls','solid'))
-    kwargs['colors']=kwargs.get('colors',kwargs.pop('col','k'))
+    kwargs['_colors']=kwargs.get('_colors',kwargs.pop('col','k'))
     
     return ax,ax.hlines(y,xmin,xmax,**kwargs)
 
@@ -673,7 +670,7 @@ def gridlist(nrows,ncols):
     return iter([str(nrows)+str(ncols)+str(i) for i in xrange(1,nrows*ncols+1)])
 
 #~ Shifted colormap from http://stackoverflow.com/questions/7404116/defining-the-midpoint-of-a-colormap-in-matplotlib
-def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
+def _shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
     '''
     Function to offset the "center" of a colormap. Useful for
     data with a negative min and positive max and you want the
@@ -702,13 +699,13 @@ def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
         'alpha': []
     }
 
-    # regular index to compute the colors
-    reg_index = np.linspace(start, stop, 257)
+    # regular index to compute the _colors
+    reg_index = _np.linspace(start, stop, 257)
 
     # shifted index to match the data
-    shift_index = np.hstack([
-        np.linspace(0.0, midpoint, 128, endpoint=False), 
-        np.linspace(midpoint, 1.0, 129, endpoint=True)
+    shift_index = _np.hstack([
+        _np.linspace(0.0, midpoint, 128, endpoint=False), 
+        _np.linspace(midpoint, 1.0, 129, endpoint=True)
     ])
 
     for ri, si in zip(reg_index, shift_index):
@@ -719,16 +716,21 @@ def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
         cdict['blue'].append((si, b, b))
         cdict['alpha'].append((si, a, a))
 
-    newcmap = colors.LinearSegmentedColormap(name, cdict)
+    newcmap = _colors.LinearSegmentedColormap(name, cdict)
     plt.register_cmap(cmap=newcmap)
 
     return newcmap
 
-def get_appropriate_colormap(vmin,vmax):
+def _getlocator(tick_locator):
+			if tick_locator=='linear': return _ticker.LinearLocator
+			elif tick_locator=='fixed': return _ticker.LinearLocator
+			else: return _ticker.MaxNLocator
+
+def _get_appropriate_colormap(vmin,vmax):
     
-    all_positive_cmap=cm.OrRd    
-    positive_negative_cmap=cm.RdBu_r    
-    all_negative_cmap=cm.Blues_r
+    all_positive_cmap=_cm.OrRd    
+    positive_negative_cmap=_cm.RdBu_r    
+    all_negative_cmap=_cm.Blues_r
     
     if vmax>0 and (vmin*vmax>=0 or -vmin/vmax<2e-2): 
         return all_positive_cmap
@@ -737,30 +739,30 @@ def get_appropriate_colormap(vmin,vmax):
     elif vmin*vmax<0:
         midpoint = 1 - vmax/(vmax + abs(vmin))
         orig_cmap=positive_negative_cmap
-        return shiftedColorMap(orig_cmap, midpoint=midpoint, name='shifted')
+        return _shiftedColorMap(orig_cmap, midpoint=midpoint, name='shifted')
     else: 
         return positive_negative_cmap
 
-def get_centered_grid_for_pcolormesh(x=None,y=None):
+def _get_centered_grid_for_pcolormesh(x=None,y=None):
     #~ Shift axis grid from boundaries to centers of grid squares
     #~ Boundary trick from http://alex.seeholzer.de/2014/05/fun-with-matplotlib-pcolormesh-getting-data-to-display-in-the-right-position/
     
     if x is not None:
         dx=x[-1]-x[-2];
         xlast=x[-1]+dx;
-        xgrid=np.insert(x,len(x),xlast)-dx/2
+        xgrid=_np.insert(x,len(x),xlast)-dx/2
     else: xgrid=None
     
     if y is not None:
         dy=y[-1]-y[-2]
         ylast=y[-1]+dy
-        ygrid=np.insert(y,len(y),ylast)-dy/2
+        ygrid=_np.insert(y,len(y),ylast)-dy/2
     else: ygrid=None
         
 
     return xgrid,ygrid
 
-def center_range_around_zero(vmin,vmax,amin,amax):
+def _center_range_around_zero(vmin,vmax,amin,amax):
     if vmax*vmin<0:
         if vmin == amin and vmax != amax:
                 vmin=-vmax
@@ -780,7 +782,7 @@ def center_range_around_zero(vmin,vmax,amin,amax):
         print "Zero lies outside colorbar range, can't center around zero"
     return vmin,vmax
 
-def set_axis_limits(xgrid,ygrid,xr,yr,xrpad=False,yrpad=False,dim=2,**kwargs):
+def _set_axis_limits(xgrid,ygrid,xr,yr,xrpad=False,yrpad=False,dim=2,**kwargs):
     
     dx=xgrid[1]-xgrid[0]
     dy=ygrid[1]-ygrid[0]
@@ -836,7 +838,7 @@ def set_axis_limits(xgrid,ygrid,xr,yr,xrpad=False,yrpad=False,dim=2,**kwargs):
         
     return xlim,ylim
 
-def generate_colorbar(**colorbar_properties):
+def _generate_colorbar(**colorbar_properties):
     
     colorbar_scientific=colorbar_properties.pop('scientific',False)
     cbar_title=colorbar_properties.pop('title',None)
@@ -849,7 +851,7 @@ def generate_colorbar(**colorbar_properties):
         cb.set_ticklabels(ticklabels)
     
     if not 'ticks' in colorbar_properties:
-        cb.locator = ticker.MaxNLocator(nbins=5)
+        cb.locator = _ticker.MaxNLocator(nbins=5)
         cb.update_ticks()
     
     if cbar_title is not None:
@@ -858,7 +860,7 @@ def generate_colorbar(**colorbar_properties):
     
     return cb
     
-def subplot_index_is_valid(subplot_index):
+def _subplot_index_is_valid(subplot_index):
         
     try:
         assert int(subplot_index)>=111 and int(subplot_index)<=999
@@ -897,12 +899,10 @@ def subplot_index_is_valid(subplot_index):
     
     return True
 
-def texfonts():
-    rcParams['font.family'] = 'serif'
-    rcParams['font.serif'] = ['Helvetica']
-    rcParams['text.usetex'] = True
+def _texfonts():
+    _rcParams['font.family'] = 'serif'
+    _rcParams['font.serif'] = ['Helvetica']
+    _rcParams['text.usetex'] = True
 
 def figuresize(width=6.5,height=5):
     plt.gcf().set_size_inches(width,height)
-    
-figsize=figuresize
