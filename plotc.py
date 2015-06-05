@@ -4,8 +4,28 @@ import numpy as _np
 from mpl_toolkits.mplot3d import Axes3D as _Axes3D
 
 def colorplot(arr,**kwargs):
-    arr                    	=_np.squeeze(arr)
-    ash                    	=arr.shape
+    ''' Creates a 2D density plot of the array using matplotlib's 
+    pcolormesh. 
+    Usage:
+    colorplot(arr[,x=[1D array],y=[1D array],colorbar=True,
+                xlim=[xlow,xhigh],ylim=[ylow,yhigh],ax=gca(),
+                vmin=arr.min(),vmax=arr.max(),centerzero=True,
+                rasterized=True,usetex=False,
+                axes_properties=dict(xlabel="",...),
+                colorbar_properties=dict(...),
+                subplot_properties=dict(polar=False,...),
+                locator_properties_xy=dict(...),
+                title_properties=dict(...),**kwargs]
+            )
+    Chooses a suitable colormap based on your data, unless specified otherwise.
+    It places tick labels at tick centers, instead of cell edges, 
+    which is pcolormesh default behaviour. Whenever applicable,
+    pass the axis as ax=axis to avoid unwanted shifts arising due to default 
+    behaviour of pyplot's gca().
+    '''
+    
+    arr=_np.squeeze(arr)
+    ash=arr.shape
     try: assert len(ash) == 2
     except AssertionError: 
         print "Colorplot requires 2D arrays"
@@ -16,87 +36,103 @@ def colorplot(arr,**kwargs):
         print "Ignoring imaginary part"
         arr=_np.real(arr)
     
-    x						=kwargs.get('x',None)
-    x2						=kwargs.get('x2',None)
-    y						=kwargs.get('y',None)
-    y2						=kwargs.get('y2',None)
-    xr						=kwargs.get('xlim',kwargs.get('xr',None))
-    yr						=kwargs.get('ylim',kwargs.get('yr',None))
+    x=kwargs.pop('x',None)
+    x2=kwargs.pop('x2',None)
+    y=kwargs.pop('y',None)
+    y2=kwargs.pop('y2',None)
+    xr=kwargs.pop('xlim',kwargs.pop('xr',None))
+    yr=kwargs.pop('ylim',kwargs.pop('yr',None))
     
-    subplot_index			=kwargs.get('subplot_index',kwargs.get('subplot',kwargs.get('sp',111)))
-    subplot_properties		=kwargs.get('subplot_properties',{})
+    subplot_index=kwargs.pop('subplot_index',kwargs.pop('subplot',kwargs.pop('sp',111)))
+    subplot_properties=kwargs.pop('subplot_properties',{})
     if not _subplot_index_is_valid(subplot_index): return
     
-    colorbar           	 	=kwargs.get('colorbar',True)
-    colorbar_properties		=kwargs.get('colorbar_properties',{})
-    centerzero				=kwargs.get('centerzero',False) 
+    colorbar=kwargs.pop('colorbar',True)
+    colorbar_properties=kwargs.pop('colorbar_properties',{})
+    centerzero=kwargs.pop('centerzero',False)
     
-    cmap					=kwargs.get('cmap',None)
+    cmap=kwargs.pop('cmap',None)
     
-    pcolormesh_properties	=kwargs.get('pcolormesh_properties',{})
-    pcolormesh_properties['rasterized']=pcolormesh_properties.get('rasterized',True)
+    kwargs['rasterized']=kwargs.get('rasterized',True)
     
-    axes_properties			=kwargs.get('axes_properties',{})
+    axes_properties=kwargs.pop('axes_properties',{})
     
-    flipy					=axes_properties.get('flipy',False)
-    flipx					=axes_properties.get('flipx',False)
-    xrpad					=axes_properties.get('xrpad',False)
-    yrpad					=axes_properties.get('yrpad',False)
-    xtickpad				=axes_properties.get('xtickpad',6.)
-    ytickpad				=axes_properties.get('ytickpad',6.)
+    flipy=axes_properties.get('flipy',False)
+    flipx=axes_properties.get('flipx',False)
+    xrpad=axes_properties.get('xrpad',False)
+    yrpad=axes_properties.get('yrpad',False)
+    xtickpad=axes_properties.get('xtickpad',6.)
+    ytickpad=axes_properties.get('ytickpad',6.)
     
-    x_sci					=axes_properties.get('x_sci',True)
-    y_sci					=axes_properties.get('y_sci',True)
-    xy_sci					=axes_properties.get('xy_sci',False)
-    xscilimits				=axes_properties.get('xscilimits',(-3,3))
-    yscilimits				=axes_properties.get('yscilimits',(-3,3))
-    if xy_sci:				x_sci=y_sci=True
+    x_sci=axes_properties.get('x_sci',True)
+    y_sci=axes_properties.get('y_sci',True)
+    xy_sci=axes_properties.get('xy_sci',False)
+    xscilimits=axes_properties.get('xscilimits',(-3,3))
+    yscilimits=axes_properties.get('yscilimits',(-3,3))
+    if xy_sci:	x_sci=y_sci=True
     
-    hide_xticks				=axes_properties.get('hide_xticks',False)
-    hide_xticklabels   		=axes_properties.get('hide_xticklabels',False)
-    hide_yticks				=axes_properties.get('hide_yticks',False)
-    hide_yticklabels		=axes_properties.get('hide_yticklabels',False)
-    hide_x2ticks			=axes_properties.get('hide_x2ticks',False)
-    hide_x2ticklabels		=axes_properties.get('hide_x2ticklabels',False)
-    hide_y2ticks			=axes_properties.get('hide_y2ticks',False)
-    hide_y2ticklabels		=axes_properties.get('hide_y2ticklabels',False)
+    hide_xticks=axes_properties.get('hide_xticks',False)
+    hide_xticklabels=axes_properties.get('hide_xticklabels',False)
+    hide_yticks=axes_properties.get('hide_yticks',False)
+    hide_yticklabels=axes_properties.get('hide_yticklabels',False)
+    hide_x2ticks=axes_properties.get('hide_x2ticks',False)
+    hide_x2ticklabels=axes_properties.get('hide_x2ticklabels',False)
+    hide_y2ticks=axes_properties.get('hide_y2ticks',False)
+    hide_y2ticklabels=axes_properties.get('hide_y2ticklabels',False)
     
-    xtick_locator			=axes_properties.get('xtick_locator','max')
-    ytick_locator			=axes_properties.get('ytick_locator','max')
-    locator_properties_x	=kwargs.get('locator_properties_x',{})
-    locator_properties_x2	=kwargs.get('locator_properties_x2',{})
-    locator_properties_y	=kwargs.get('locator_properties_y',{})
-    locator_properties_y2	=kwargs.get('locator_properties_y2',{})
-    locator_properties_xy	=kwargs.get('locator_properties_xy',{})
-    locator_properties_x2y2	=kwargs.get('locator_properties_x2y2',{})
+    xtick_locator=axes_properties.get('xtick_locator','max')
+    ytick_locator=axes_properties.get('ytick_locator','max')
+    locator_properties_x=kwargs.pop('locator_properties_x',{})
+    locator_properties_x2=kwargs.pop('locator_properties_x2',{})
+    locator_properties_y=kwargs.pop('locator_properties_y',{})
+    locator_properties_y2=kwargs.pop('locator_properties_y2',{})
+    locator_properties_xy=kwargs.pop('locator_properties_xy',{})
+    locator_properties_x2y2=kwargs.pop('locator_properties_x2y2',{})
     
     locator_properties_x.update(locator_properties_xy)
     locator_properties_y.update(locator_properties_xy)
     locator_properties_x2.update(locator_properties_x2y2)
     locator_properties_y2.update(locator_properties_x2y2)
+
         
-    polar					=subplot_properties.get('polar',False)
+    polar=subplot_properties.get('polar',False)
     if polar: 
         print "Note: Assuming x is theta and y is r"
         print "If plot looks correct you may safely ignore this"
         print "If plot looks weird you might want to specify x and y"
     
-    usetex					=kwargs.get('usetex',False)
-    if usetex:				_texfonts()
+    usetex=kwargs.pop('usetex',False)
+    if usetex:	_texfonts()
     
     amin=arr.min()
     amax=arr.max()
     
-    vmin					=kwargs.get('vmin',amin)
-    vmax					=kwargs.get('vmax',amax)
+    vmin=kwargs.pop('vmin',amin)
+    vmax=kwargs.pop('vmax',amax)
     
-    if centerzero:        	vmin,vmax=_center_range_around_zero(vmin,vmax,amin,amax)
+    if centerzero: 	vmin,vmax=_center_range_around_zero(vmin,vmax,amin,amax)
 
-    ax						=kwargs.get('ax',None)
+    ax=kwargs.get('ax',None)
     if ax is None:
         if int(subplot_index) ==111: 
 			plt.clf()
         ax=plt.subplot(subplot_index,**subplot_properties)
+    
+    title =kwargs.pop('title',ax.get_title())
+    title=axes_properties.get('title',title)
+    title_properties=kwargs.pop('title_properties',{})
+    
+    xlabel=kwargs.pop('xl',kwargs.pop('xlabel',ax.get_xlabel()))
+    ylabel=kwargs.pop('yl',kwargs.pop('ylabel',ax.get_ylabel()))
+    xlabelproperties=kwargs.pop('xlabelproperties',{})
+    ylabelproperties=kwargs.pop('ylabelproperties',{})
+    xylabelproperties=kwargs.pop('xylabelproperties',{})
+    
+    xlabel =axes_properties.get('xlabel',axes_properties.get('xl',xlabel))
+    ylabel =axes_properties.get('ylabel',axes_properties.get('xl',ylabel))
+    
+    xlabelproperties.update(xylabelproperties)
+    ylabelproperties.update(xylabelproperties)
     
     #~ Set scientific notation on colorbar for small or large values
     cbar_clip=max(abs(vmax),abs(vmin))
@@ -148,7 +184,7 @@ def colorplot(arr,**kwargs):
     #~ Actual plot
     if cmap is None: cmap=_get_appropriate_colormap(vmin,vmax)
 
-    mesh=ax.pcolormesh(xgrid,ygrid,arr,cmap=cmap,vmin=vmin,vmax=vmax,**pcolormesh_properties)
+    mesh=ax.pcolormesh(xgrid,ygrid,arr,cmap=cmap,vmin=vmin,vmax=vmax,**kwargs)
     
     
     _set_axis_limits(xgrid,ygrid,xr,yr,xrpad=xrpad,yrpad=yrpad,ax=ax)
@@ -170,7 +206,7 @@ def colorplot(arr,**kwargs):
         
         ax2.set_xlim(x2[0],x2[-1])
         
-        ax2.get_xaxis().set_major_locator(_ticker.MaxNLocator(nbins=x2bins,integer=True if int_ticks_x2 else False))
+        ax2.get_xaxis().set_major_locator(_ticker.MaxNLocator(**locator_properties_x2))
         if hide_x2ticks: ax2.set_xticks([])
         if hide_x2ticklabels: ax2.set_xticklabels([])
         
@@ -180,7 +216,7 @@ def colorplot(arr,**kwargs):
         
         ax2.set_ylim(y2[0],y2[-1])
         
-        if int_ticks_y2: ax2.get_yaxis().set_major_locator(_ticker.MaxNLocator(nbins=y2bins,integer=True))
+        ax2.get_yaxis().set_major_locator(_ticker.MaxNLocator(**locator_properties_x2))
         if hide_y2ticks: ax2.set_yticks([])
         if hide_y2ticklabels: ax2.set_yticklabels([])
     
@@ -207,213 +243,219 @@ def colorplot(arr,**kwargs):
     if hide_xticklabels: ax.set_xticklabels([])
     if hide_yticklabels: ax.set_yticklabels([])
     
-    xlabel					=kwargs.get('xl',kwargs.get('xlabel',ax.get_xlabel()))
-    ylabel					=kwargs.get('yl',kwargs.get('ylabel',ax.get_ylabel()))
-    xlabelproperties		=kwargs.get('xlabelproperties',{})
-    ylabelproperties		=kwargs.get('ylabelproperties',{})
-    xylabelproperties		=kwargs.get('xylabelproperties',{})
-    
-    xlabel 					=axes_properties.get('xlabel',axes_properties.get('xl',xlabel))
-    ylabel 					=axes_properties.get('ylabel',axes_properties.get('xl',ylabel))
-    
-    xlabelproperties.update(xylabelproperties)
-    ylabelproperties.update(xylabelproperties)
-    
     ax.set_xlabel(xlabel,**xlabelproperties)
     ax.set_ylabel(ylabel,**ylabelproperties)
-    
-    
-    
-    title                   =kwargs.get('title',ax.get_title())
-    title 					=axes_properties.get('title',title)
-    title_properties        =kwargs.get('title_properties',{})
+ 
     ax.set_title(title,**title_properties)
     
     return ax,cbax
     
 def quiver2D(U,V,**kwargs):
-    gridshape            =U.shape
-    x                    =kwargs.get('x',_np.linspace(0,10,gridshape[1]))
-    x2                    =kwargs.get('x2',None)    
-    y                    =kwargs.get('y',_np.linspace(0,10,gridshape[0]))
-    y2                    =kwargs.get('y2',None)
+    '''Creates a 2D vector plot using the specified x and y components U and V, sampling
+    the data as specified in every. Uses's pyplot's quiver() and accepts standard keywords.
+    Usage:
+    quiver2D(U,V[,x=1D array,y=1D array,every=[1,1],
+                ax=gca(),xlim=ax.get_xlim(),ylim=ax.get_ylim(),
+                show_key=False,usetex=False,
+                axes_properties=dict(xlabel=ax.get_xlabel(),...),
+                key_properties=dict(scale=...,...),
+                subplot_properties=dict(...),
+                locator_properties_xy=dict(...),
+                title_properties=dict(...),**kwargs]
+            )
+    It defaults to show_key=False, change this to true to generate a suitable key based on your data. You 
+    can specify the key length as scale=... in key_properties. Whenever possible, specify the current axis
+    as ax=axis to avoid unwanted behavious arising due to pyplot's gca().
+    '''
+    gridshape =U.shape
+    x =kwargs.pop('x',_np.linspace(0,10,gridshape[1]))
+    x2=kwargs.pop('x2',None)    
+    y =kwargs.pop('y',_np.linspace(0,10,gridshape[0]))
+    y2=kwargs.pop('y2',None)
     
-    quiver_properties    =kwargs.get('quiver_properties',{})
+    every=kwargs.pop('every',[1,1])
     
-    every                =kwargs.get('every',[1,1])
+    xr=kwargs.pop('xlim',kwargs.pop('xr',None))
+    yr=kwargs.pop('ylim',kwargs.pop('yr',None))
     
-    xr                    =kwargs.get('xlim',kwargs.get('xr',None))
-    yr                    =kwargs.get('ylim',kwargs.get('yr',None))
-    
-    subplot_index        =kwargs.get('subplot_index',kwargs.get('subplot',kwargs.get('sp',111)))
-    subplot_properties    =kwargs.get('subplot_properties',{})
+    subplot_index=kwargs.pop('subplot_index',kwargs.pop('subplot',kwargs.pop('sp',111)))
+    subplot_properties=kwargs.pop('subplot_properties',{})
     if not _subplot_index_is_valid(subplot_index): return
     
-    axes_properties        =kwargs.get('axes_properties',{})
+    axes_properties =kwargs.pop('axes_properties',{})
     
     
-    xrpad                =axes_properties.get('xrpad',False)
-    yrpad                =axes_properties.get('yrpad',False)
-    xtickpad            =axes_properties.get('xtickpad',6.)
-    ytickpad            =axes_properties.get('ytickpad',6.)    
-    int_ticks_x            =axes_properties.get('int_ticks_x',False)
-    int_ticks_y            =axes_properties.get('int_ticks_y',False)
-    int_ticks            =axes_properties.get('int_ticks',False)
-    int_ticks_x2        =axes_properties.get('int_ticks_x2',True)
-    int_ticks_y2        =axes_properties.get('int_ticks_y2',True)
-    int_ticks2            =kwargs.get('int_ticks2',True)
-    if int_ticks2:         int_ticks_x2=int_ticks_y2=True
-    if int_ticks:         int_ticks_x=int_ticks_y=True
+    xrpad=axes_properties.get('xrpad',False)
+    yrpad=axes_properties.get('yrpad',False)
+    xtickpad=axes_properties.get('xtickpad',6.)
+    ytickpad=axes_properties.get('ytickpad',6.)
     
-    x1bins                =axes_properties.get('xbins',10)
-    y1bins                =axes_properties.get('ybins',10)
-    x2bins                =axes_properties.get('x2bins',5)
-    y2bins                =axes_properties.get('y2bins',5)
-    
-    x_sci                =axes_properties.get('x_sci',True)
-    y_sci                =axes_properties.get('y_sci',True)
-    xy_sci                =axes_properties.get('xy_sci',False)
-    if xy_sci:             x_sci=y_sci=True
-    
-    hide_xticks            =axes_properties.get('hide_xticks',False)
-    hide_xticklabels    =axes_properties.get('hide_xticklabels',False)
-    hide_yticks            =axes_properties.get('hide_yticks',False)
-    hide_yticklabels    =axes_properties.get('hide_yticklabels',False)
-    hide_x2ticks        =axes_properties.get('hide_x2ticks',False)
-    hide_x2ticklabels    =axes_properties.get('hide_x2ticklabels',False)
-    hide_y2ticks        =axes_properties.get('hide_y2ticks',False)
-    hide_y2ticklabel    =axes_properties.get('hide_y2ticklabels',False)
-    
-    usetex                =kwargs.get('usetex',False)
-    key                    =kwargs.get('show_key',False)
-    key_properties        =kwargs.get('key_properties',{})
-    keyscale            =key_properties.get('keyscale',None)
-    keyprefix            =key_properties.get('keyprefix',"")
-    keysuffix            =key_properties.get('keysuffix',"")
-    
-    if usetex: _texfonts()
-    
-    ax=kwargs.get('ax',None)
-    if ax is None:
-        if int(subplot_index) ==111: plt.clf(); 
-        ax=plt.subplot(subplot_index,**subplot_properties)
-    
-    #~ Actual plot
-    every_x,every_y=every
-    Q=plt.quiver(x[::every_x],y[::every_y],U[::every_y,::every_x],V[::every_y,::every_x],**quiver_properties)
-    
-    if key:
-        if keyscale is None:
-            mod=_np.sqrt(U**2+V**2)
-            keyscale=mod.max()*0.66    
-            keyscale=int(_np.floor(keyscale/100)*100)
-        plt.quiverkey(Q,0.8,1.02,keyscale,keyprefix+str(keyscale)+keysuffix,labelpos='N',
-        fontproperties={'size':14})
-    
-    _set_axis_limits(x,y,xr,yr,xrpad=xrpad,yrpad=yrpad,ax=ax)
-    
-    ax.get_xaxis().set_major_locator(_ticker.MaxNLocator(nbins=x1bins,integer=True if int_ticks_x else False))
-    ax.get_yaxis().set_major_locator(_ticker.MaxNLocator(nbins=y1bins,integer=True if int_ticks_y else False))
-
-    if x_sci:
-        ax.ticklabel_format(axis='x', style='sci', scilimits=(-3,3))
-    if y_sci:
-        ax.ticklabel_format(axis='y', style='sci', scilimits=(-3,3))
-    
-    if hide_xticklabels: ax.set_xticklabels([])
-    if hide_yticklabels: ax.set_yticklabels([])
-    
-    xlabel					=kwargs.get('xl',kwargs.get('xlabel',ax.get_xlabel()))
-    ylabel					=kwargs.get('yl',kwargs.get('ylabel',ax.get_ylabel()))
-    xlabelproperties		=kwargs.get('xlabelproperties',{})
-    ylabelproperties		=kwargs.get('ylabelproperties',{})
-    xylabelproperties		=kwargs.get('xylabelproperties',{})
-    
-    xlabel 					=axes_properties.get('xlabel',axes_properties.get('xl',xlabel))
-    ylabel 					=axes_properties.get('ylabel',axes_properties.get('xl',ylabel))
-    
-    xlabelproperties.update(xylabelproperties)
-    ylabelproperties.update(xylabelproperties)
-    
-    ax.set_xlabel(xlabel,**xlabelproperties)
-    ax.set_ylabel(ylabel,**ylabelproperties)
-    
-    title                   =kwargs.get('title',ax.get_title())
-    title 					=axes_properties.get('title',title)
-    title_properties        =kwargs.get('title_properties',{})
-    ax.set_title(title,**title_properties)
-    
-    return ax
-        
-def plot1D(arr,**kwargs):
-    
-    try: arr=_np.array(arr)
-    except:
-        print "Require array like object to plot"
-        return
-    
-    plot_properties         =kwargs.get('plot_properties',{})
-    
-    x=kwargs.get('x',None)
-    xr=kwargs.get('xlim',kwargs.get('xr',None))
-    yr=kwargs.get('ylim',kwargs.get('yr',None))
-    
-    ax						=kwargs.get('ax',None)
-
-    subplot_index			=kwargs.get('subplot_index',kwargs.get('subplot',kwargs.get('sp',None)))
-    subplot_properties		=kwargs.get('subplot_properties',{})
-
-    usetex					=kwargs.get('usetex',False)
-    if usetex:				_texfonts()
-
-    axes_properties			=kwargs.get('axes_properties',{})
-    
-    x_sci					=axes_properties.get('x_sci',True)
-    y_sci					=axes_properties.get('y_sci',True)
-    xy_sci					=axes_properties.get('xy_sci',False)
-    xscilimits				=axes_properties.get('xscilimits',(-3,3))
-    yscilimits				=axes_properties.get('yscilimits',(-3,3))
-    if xy_sci:				x_sci=y_sci=True
-    
-    hide_xticks				=axes_properties.get('hide_xticks',False)
-    hide_xticklabels    	=axes_properties.get('hide_xticklabels',False)
-    hide_yticks				=axes_properties.get('hide_yticks',False)
-    hide_yticklabels		=axes_properties.get('hide_yticklabels',False)
-    hide_x2ticks			=axes_properties.get('hide_x2ticks',False)
-    hide_x2ticklabels		=axes_properties.get('hide_x2ticklabels',False)
-    hide_y2ticks			=axes_properties.get('hide_y2ticks',False)
-    hide_y2ticklabels		=axes_properties.get('hide_y2ticklabels',False)
-    
-    exponent_xy				=axes_properties.get('exponent_xy',None)
-    
-    xtick_locator			=axes_properties.get('xtick_locator','max')
-    ytick_locator			=axes_properties.get('ytick_locator','max')
-    locator_properties_x	=kwargs.get('locator_properties_x',{})
-    locator_properties_x2	=kwargs.get('locator_properties_x2',{})
-    locator_properties_y	=kwargs.get('locator_properties_y',{})
-    locator_properties_y2	=kwargs.get('locator_properties_y2',{})
-    locator_properties_xy	=kwargs.get('locator_properties_xy',{})
-    locator_properties_x2y2	=kwargs.get('locator_properties_x2y2',{})
+    xtick_locator=axes_properties.get('xtick_locator','max')
+    ytick_locator=axes_properties.get('ytick_locator','max')
+    locator_properties_x=kwargs.pop('locator_properties_x',{})
+    locator_properties_x2=kwargs.pop('locator_properties_x2',{})
+    locator_properties_y=kwargs.pop('locator_properties_y',{})
+    locator_properties_y2=kwargs.pop('locator_properties_y2',{})
+    locator_properties_xy=kwargs.pop('locator_properties_xy',{})
+    locator_properties_x2y2=kwargs.pop('locator_properties_x2y2',{})
     
     locator_properties_x.update(locator_properties_xy)
     locator_properties_y.update(locator_properties_xy)
     locator_properties_x2.update(locator_properties_x2y2)
     locator_properties_y2.update(locator_properties_x2y2)
     
-    int_ticks_x				=locator_properties_x.get('int_ticks_x',False)
-    int_ticks_y				=locator_properties_y.get('int_ticks_y',False)
-    int_ticks				=locator_properties_xy.get('int_ticks',False)
-    int_ticks_x2			=locator_properties_x2.get('int_ticks_x2',True)
-    int_ticks_y2			=locator_properties_y2.get('int_ticks_y2',True)
-    int_ticks2				=locator_properties_x2y2.get('int_ticks2',True)
+    x_sci=axes_properties.get('x_sci',True)
+    y_sci=axes_properties.get('y_sci',True)
+    xy_sci=axes_properties.get('xy_sci',False)
+    xscilimits=axes_properties.get('xscilimits',(-3,3))
+    yscilimits=axes_properties.get('yscilimits',(-3,3))
+    if xy_sci:				x_sci=y_sci=True
     
-    if int_ticks:			int_ticks_x=int_ticks_y=True
-    if int_ticks2:			int_ticks_x2=int_ticks_y2=True
+    hide_xticks =axes_properties.get('hide_xticks',False)
+    hide_xticklabels=axes_properties.get('hide_xticklabels',False)
+    hide_yticks =axes_properties.get('hide_yticks',False)
+    hide_yticklabels=axes_properties.get('hide_yticklabels',False)
+    hide_x2ticks=axes_properties.get('hide_x2ticks',False)
+    hide_x2ticklabels =axes_properties.get('hide_x2ticklabels',False)
+    hide_y2ticks=axes_properties.get('hide_y2ticks',False)
+    hide_y2ticklabel=axes_properties.get('hide_y2ticklabels',False)
     
-    x1bins					=locator_properties_x.get('xbins',10)
-    y1bins					=locator_properties_y.get('ybins',10)
-    x2bins					=locator_properties_x2.get('x2bins',5)
-    y2bins					=locator_properties_x2y2.get('y2bins',5)
+    usetex  =kwargs.pop('usetex',False)
+    key =kwargs.pop('show_key',False)
+    key_properties  =kwargs.pop('key_properties',{})
+    keyscale=key_properties.get('scale',None)
+    keyprefix =key_properties.get('prefix',"")
+    keysuffix =key_properties.get('suffix',"")
+    
+    if usetex: _texfonts()
+    
+    ax=kwargs.pop('ax',None)
+    if ax is None:
+        if int(subplot_index) ==111: plt.clf(); 
+        ax=plt.subplot(subplot_index,**subplot_properties)
+    
+    title=kwargs.pop('title',ax.get_title())
+    title =axes_properties.get('title',title)
+    title_properties=kwargs.pop('title_properties',{})
+    
+    xlabel=kwargs.pop('xl',kwargs.pop('xlabel',ax.get_xlabel()))
+    ylabel=kwargs.pop('yl',kwargs.pop('ylabel',ax.get_ylabel()))
+    xlabelproperties=kwargs.pop('xlabelproperties',{})
+    ylabelproperties=kwargs.pop('ylabelproperties',{})
+    xylabelproperties=kwargs.pop('xylabelproperties',{})
+    
+    xlabel =axes_properties.get('xlabel',axes_properties.get('xl',xlabel))
+    ylabel =axes_properties.get('ylabel',axes_properties.get('xl',ylabel))
+    
+    xlabelproperties.update(xylabelproperties)
+    ylabelproperties.update(xylabelproperties)
+    
+    
+    #~ Actual plot
+    every_x,every_y=every
+    Q=plt.quiver(x[::every_x],y[::every_y],U[::every_y,::every_x],V[::every_y,::every_x],**kwargs)
+    
+    if key:
+        if keyscale is None:
+            mod=_np.sqrt(U**2+V**2)
+            keyscale=mod.max()*0.66
+            keytext="{:.1e}".format(keyscale)
+        plt.quiverkey(Q,0.8,1.02,keyscale,keyprefix+str(keytext)+keysuffix,labelpos='N',
+        fontproperties={'size':14})
+    
+    #~ Axis limits
+    _set_axis_limits(x,y,xr,yr,xrpad=xrpad,yrpad=yrpad,ax=ax)
+    
+    #~ Axis ticks
+    if hide_xticks: ax.set_xticks([])
+    else: 
+		ax.get_xaxis().set_major_locator(_getlocator(xtick_locator)(**locator_properties_x))
+		if x_sci:    ax.ticklabel_format(axis='x', style='sci', scilimits=xscilimits)
+		for tick in ax.get_xaxis().get_major_ticks():
+			tick.set_pad(xtickpad)
+			tick.label1 = tick._get_text1()
+
+    if hide_yticks: ax.set_yticks([])
+    else: 
+		ax.get_yaxis().set_major_locator(_getlocator(ytick_locator)(**locator_properties_y))
+		if y_sci:    ax.ticklabel_format(axis='y', style='sci', scilimits=yscilimits)
+		for tick in ax.get_yaxis().get_major_ticks():
+			tick.set_pad(ytickpad)
+			tick.label1 = tick._get_text1()
+    
+    #~ Axis tick labels
+    if hide_xticklabels: ax.set_xticklabels([])
+    if hide_yticklabels: ax.set_yticklabels([])
+    
+    #~ Axis labels
+    ax.set_xlabel(xlabel,**xlabelproperties)
+    ax.set_ylabel(ylabel,**ylabelproperties)
+    
+    ax.set_title(title,**title_properties)
+    
+    return ax
+        
+def plot1D(arr,**kwargs):
+    '''Plots a 1D function using pyplot's plot. Accepts standard keywords.
+    Usage:
+    plot1D(arr[,x=1D array,
+                ax=gca(),xlim=ax.get_xlim(),ylim=ax.get_ylim(),
+                usetex=False,label="",
+                axes_properties=dict(xlabel=ax.get_xlabel(),...),                
+                subplot_properties=dict(...),
+                locator_properties_xy=dict(...),
+                title_properties=dict(...),**kwargs]
+            )
+    '''
+    try: arr=_np.array(arr)
+    except:
+        print "Require array like object to plot"
+        return
+    
+    x =kwargs.pop('x',None)
+    xr=kwargs.pop('xlim',kwargs.pop('xr',None))
+    yr=kwargs.pop('ylim',kwargs.pop('yr',None))
+    
+    ax=kwargs.pop('ax',None)
+
+    subplot_index=kwargs.pop('subplot_index',kwargs.pop('subplot',kwargs.pop('sp',None)))
+    subplot_properties=kwargs.pop('subplot_properties',{})
+
+    usetex=kwargs.pop('usetex',False)
+    if usetex:				_texfonts()
+
+    axes_properties=kwargs.pop('axes_properties',{})
+    
+    x_sci=axes_properties.get('x_sci',True)
+    y_sci=axes_properties.get('y_sci',True)
+    xy_sci=axes_properties.get('xy_sci',False)
+    xscilimits=axes_properties.get('xscilimits',(-3,3))
+    yscilimits=axes_properties.get('yscilimits',(-3,3))
+    if xy_sci:				x_sci=y_sci=True
+    
+    hide_xticks=axes_properties.get('hide_xticks',False)
+    hide_xticklabels=axes_properties.get('hide_xticklabels',False)
+    hide_yticks=axes_properties.get('hide_yticks',False)
+    hide_yticklabels=axes_properties.get('hide_yticklabels',False)
+    hide_x2ticks=axes_properties.get('hide_x2ticks',False)
+    hide_x2ticklabels=axes_properties.get('hide_x2ticklabels',False)
+    hide_y2ticks=axes_properties.get('hide_y2ticks',False)
+    hide_y2ticklabels=axes_properties.get('hide_y2ticklabels',False)
+    
+    xtick_locator=axes_properties.get('xtick_locator','max')
+    ytick_locator=axes_properties.get('ytick_locator','max')
+    locator_properties_x=kwargs.pop('locator_properties_x',{})
+    locator_properties_x2=kwargs.pop('locator_properties_x2',{})
+    locator_properties_y=kwargs.pop('locator_properties_y',{})
+    locator_properties_y2=kwargs.pop('locator_properties_y2',{})
+    locator_properties_xy=kwargs.pop('locator_properties_xy',{})
+    locator_properties_x2y2=kwargs.pop('locator_properties_x2y2',{})
+    
+    locator_properties_x.update(locator_properties_xy)
+    locator_properties_y.update(locator_properties_xy)
+    locator_properties_x2.update(locator_properties_x2y2)
+    locator_properties_y2.update(locator_properties_x2y2)
+
     
     ash=arr.shape
     try:
@@ -438,13 +480,29 @@ def plot1D(arr,**kwargs):
     if ax.has_data():		
         ylim_original=ax.get_ylim()
         xlim_original=ax.get_xlim()
-		
+    
+    xlabel=kwargs.pop('xl',kwargs.pop('xlabel',ax.get_xlabel()))
+    ylabel=kwargs.pop('yl',kwargs.pop('ylabel',ax.get_ylabel()))
+    xlabelproperties=kwargs.pop('xlabelproperties',{})
+    ylabelproperties=kwargs.pop('ylabelproperties',{})
+    xylabelproperties =kwargs.pop('xylabelproperties',{})
+    
+    xlabel =axes_properties.get('xlabel',axes_properties.get('xl',xlabel))
+    ylabel =axes_properties.get('ylabel',axes_properties.get('xl',ylabel))
+    
+    xlabelproperties.update(xylabelproperties)
+    ylabelproperties.update(xylabelproperties)
+    
+    title=kwargs.pop('title',ax.get_title())
+    title =axes_properties.get('title',title)
+    title_properties=kwargs.pop('title_properties',{})
         
     if x is None:    x=_np.arange(Npts)    
     
     if Ny>1: print "Plotting columns of y"
     
-    p=ax.plot(x,arr,**plot_properties)
+    #~ Actual plot
+    p=ax.plot(x,arr,**kwargs)
     
     if ylim_original==None:	ylim_original=ax.get_ylim()
     if xlim_original==None:	xlim_original=ax.get_xlim()
@@ -464,32 +522,32 @@ def plot1D(arr,**kwargs):
     if hide_xticklabels: ax.set_xticklabels([])
     if hide_yticklabels: ax.set_yticklabels([])
     
-    
-    xlabel					=kwargs.get('xl',kwargs.get('xlabel',ax.get_xlabel()))
-    ylabel					=kwargs.get('yl',kwargs.get('ylabel',ax.get_ylabel()))
-    xlabelproperties        =kwargs.get('xlabelproperties',{})
-    ylabelproperties        =kwargs.get('ylabelproperties',{})
-    xylabelproperties       =kwargs.get('xylabelproperties',{})
-    
-    xlabel 					=axes_properties.get('xlabel',axes_properties.get('xl',xlabel))
-    ylabel 					=axes_properties.get('ylabel',axes_properties.get('xl',ylabel))
-    
-    xlabelproperties.update(xylabelproperties)
-    ylabelproperties.update(xylabelproperties)
-    
     ax.set_xlabel(xlabel,**xlabelproperties)
     ax.set_ylabel(ylabel,**ylabelproperties)
-    
-    title					=kwargs.get('title',ax.get_title())
-    title 					=axes_properties.get('title',title)
-    title_properties		=kwargs.get('title_properties',{})
     
     ax.set_title(title,**title_properties)
     
     return ax
 
 def sphericalplot(arr,**kwargs):
-        
+    
+    '''Plots the array arr[theta,phi] on a sphere, where theta represents
+    the colatitude and phi represents the longitude.
+    Usage:
+    sphericalplot(arr[,theta=1D array,phi=1D array,
+                    vmin=arr.min(),vmax=arr.max(),centerzero=False,
+                    ax=gca(),colorbar=True,
+                    axes_properties=dict(xlabel="",...),
+                    colorbar_properties=dict(...),
+                    subplot_properties=dict(polar=False,...),
+                    locator_properties_xyz=dict(...),
+                    title_properties=dict(...),**kwargs]                    
+                )
+    Chooses a suitable colormap based on your data, unless specified otherwise.
+    Whenever possible, pass the axis as ax=axis to avoid unwanted shifts
+    arising due to the default behaviour of pyplot's gca().
+    '''
+
     arr=_np.squeeze(arr)
     ash=arr.shape
     try: assert len(ash) == 2
@@ -506,44 +564,62 @@ def sphericalplot(arr,**kwargs):
         print "Ignoring imaginary part"
         arr=_np.real(arr)
     
-    amin                =arr.min()
-    amax                =arr.max()
-    vmin                =kwargs.get('vmin',amin)
-    vmax                =kwargs.get('vmax',amax)
-    subplot_index        =kwargs.get('subplot_index',kwargs.get('subplot',kwargs.get('sp',111)))
+    amin  =arr.min()
+    amax  =arr.max()
+    vmin  =kwargs.pop('vmin',amin)
+    vmax  =kwargs.pop('vmax',amax)
+    subplot_index =kwargs.pop('subplot_index',kwargs.pop('subplot',kwargs.pop('sp',111)))
     if not _subplot_index_is_valid(subplot_index): return
     
-    colorbar            =kwargs.get('colorbar',True)
-    colorbar_properties    =kwargs.get('colorbar_properties',{})
-    centerzero            =colorbar_properties.pop('centerzero',False)
+    colorbar=kwargs.pop('colorbar',True)
+    colorbar_properties=kwargs.pop('colorbar_properties',{})
+    centerzero=kwargs.pop('centerzero',False)
     
-    cmap                =kwargs.get('cmap',None)
+    kwargs['rstride'] =kwargs.get('rstride',int(ash[0]/50))
+    kwargs['cstride'] =kwargs.get('cstride',int(ash[1]/50))
+    kwargs['shade'] =kwargs.get('shade',False)
     
-    axes_properties        =kwargs.get('axes_properties',{})
+    cmap  =kwargs.pop('cmap',None)
     
-    flipx                =axes_properties.get('flipx',False)
-    flipy                =axes_properties.get('flipy',False)
-    flipz                =axes_properties.get('flipz',False)
+    axes_properties =kwargs.pop('axes_properties',{})
     
-    sphere                =kwargs.get('sphere_properties',{})
+    flipx =axes_properties.get('flipx',False)
+    flipy =axes_properties.get('flipy',False)
+    flipz =axes_properties.get('flipz',False)
     
-    sphere['rstride']    =sphere.get('rstride',int(ash[0]/50))
-    sphere['cstride']    =sphere.get('cstride',int(ash[1]/50))
-    sphere['shade']        =sphere.get('shade',False)
-    azim                =sphere.get('azim',360/ash[1]*_np.argmax(abs(arr))%ash[1])
-    elev                =sphere.get('elev',10)
-    dist                =sphere.get('dist',10)
+    sphere=kwargs.pop('sphere_properties',{})
+
+    azim  =sphere.get('azim',360/ash[1]*_np.argmax(abs(arr))%ash[1])
+    elev  =sphere.get('elev',10)
+    dist  =sphere.get('dist',10)
         
     ax=kwargs.get('ax',None)
     if ax is None:
         if int(subplot_index) ==111: plt.clf(); 
         ax=plt.subplot(subplot_index, projection='3d')
     
+    xlabel=kwargs.pop('xl',kwargs.pop('xlabel',ax.get_xlabel()))
+    ylabel=kwargs.pop('yl',kwargs.pop('ylabel',ax.get_ylabel()))
+    zlabel=kwargs.pop('zl',kwargs.pop('zlabel',ax.get_zlabel()))
+    xlabel=axes_properties.get('xl',axes_properties.get('xlabel',xlabel))
+    ylabel=axes_properties.get('yl',axes_properties.get('ylabel',ylabel))
+    zlabel=axes_properties.get('zl',axes_properties.get('zlabel',zlabel))
+    xlabelproperties=kwargs.pop('xlabelproperties',{})
+    ylabelproperties=kwargs.pop('ylabelproperties',{})
+    zlabelproperties=kwargs.pop('zlabelproperties',{})
+    xyzlabelproperties=kwargs.pop('xyzlabelproperties',{})
     
-    if centerzero:    vmin,vmax=_center_range_around_zero(vmin,vmax,amin,amax)
+    xlabelproperties.update(xyzlabelproperties)
+    ylabelproperties.update(xyzlabelproperties)
+    zlabelproperties.update(xyzlabelproperties)
+    
+    title =kwargs.pop('title',ax.get_title())
+    title_properties=kwargs.pop('title_properties',{})
+    
+    if centerzero:        vmin,vmax=_center_range_around_zero(vmin,vmax,amin,amax)
 
-    phi                    =kwargs.get('phi',_np.linspace(0, 2 * _np.pi, ash[1]))
-    theta                =kwargs.get('theta',_np.linspace(0, _np.pi, ash[0]))
+    phi=kwargs.get('phi',_np.linspace(0, 2 * _np.pi, ash[1]))
+    theta =kwargs.get('theta',_np.linspace(0, _np.pi, ash[0]))
 
     lonax,latax=_np.meshgrid(phi,theta)
     
@@ -561,7 +637,7 @@ def sphericalplot(arr,**kwargs):
     z = _np.outer(_np.cos(theta),_np.ones(_np.size(phi)))
     
     #~ Actual plot
-    ax.plot_surface(x, y, z, facecolors=cmap(norm(arr)),**sphere)
+    ax.plot_surface(x, y, z, facecolors=cmap(norm(arr)),**kwargs)
     
     ax.azim=azim
     ax.elev=elev
@@ -570,6 +646,7 @@ def sphericalplot(arr,**kwargs):
     #~ Set scientific notation on colorbar for small or large values
     cbar_clip=max(abs(vmax),abs(vmin))
     if cbar_clip>1e4 or cbar_clip<1e-2: colorbar_properties['scientific']=True
+    
     colorbar_properties['mappable']=scm    
     if colorbar: cbax=_generate_colorbar(**colorbar_properties)
     else: cbax=None
@@ -578,33 +655,25 @@ def sphericalplot(arr,**kwargs):
     if flipy: ax.invert_yaxis()
     if flipz: ax.invert_zaxis()
     
-    xlabel                =kwargs.get('xl',kwargs.get('xlabel',ax.get_xlabel()))
-    ylabel                =kwargs.get('yl',kwargs.get('ylabel',ax.get_ylabel()))
-    zlabel                =kwargs.get('zl',kwargs.get('zlabel',ax.get_zlabel()))
-    xlabel                =axes_properties.get('xl',axes_properties.get('xlabel',xlabel))
-    ylabel                =axes_properties.get('yl',axes_properties.get('ylabel',ylabel))
-    zlabel                =axes_properties.get('zl',axes_properties.get('zlabel',zlabel))
-    xlabelproperties      =kwargs.get('xlabelproperties',{})
-    ylabelproperties      =kwargs.get('ylabelproperties',{})
-    zlabelproperties      =kwargs.get('zlabelproperties',{})
-    xyzlabelproperties    =kwargs.get('xyzlabelproperties',{})
-    
-    xlabelproperties.update(xyzlabelproperties)
-    ylabelproperties.update(xyzlabelproperties)
-    zlabelproperties.update(xyzlabelproperties)
-    
     ax.set_xlabel(xlabel,**xlabelproperties)
     ax.set_ylabel(ylabel,**ylabelproperties)
     ax.set_zlabel(zlabel,**zlabelproperties)
-    
-    title                =kwargs.get('title',ax.get_title())
-    title_properties     =kwargs.get('title_properties',{})
     
     ax.set_title(title,**title_properties)
     
     return ax,cbax
 
-def drawvlines(x,**kwargs):
+def draw_vlines(x,**kwargs):
+    
+    '''Draw vertical lines at the specified x coordinates.
+    You can specify the y coordinates as ymin=..., ymax=..., or 
+    alternately you can leave it blank, in which case the lines would 
+    span the current y limits.
+    It uses pyplot's vlines(), and accepts standard keywords.
+    Usage:
+    vlines(x=scalar or 1D array[,ax=ax,
+            ymin=ax.get_ylim()[0],ymax=ax.get_ylim()[1],**kwargs])
+    '''
     
     ax=kwargs.pop('ax',plt.gca())
     yl=ax.get_ylim()
@@ -622,7 +691,17 @@ def drawvlines(x,**kwargs):
     
     return ax,lines
     
-def drawhlines(y,**kwargs):
+def draw_hlines(y,**kwargs):
+    
+    '''Draw horizontal lines at the specified y coordinates.
+    You can specify the x coordinates as xmin=..., xmax=..., or 
+    alternately you can leave it blank, in which case the lines would 
+    span the current x limits.
+    It uses pyplot's hlines(), and accepts standard keywords.
+    Usage:
+    hlines(y=scalar or 1D array[,ax=ax,
+            xmin=ax.get_xlim()[0],xmax=ax.get_xlim()[1],**kwargs])
+    '''
     
     ax=kwargs.pop('ax',plt.gca())
     xl=ax.get_xlim()
@@ -635,7 +714,7 @@ def drawhlines(y,**kwargs):
     
     return ax,ax.hlines(y,xmin,xmax,**kwargs)
 
-def drawline(**kwargs):
+def draw_line(**kwargs):
     
     ax=kwargs.pop('ax',plt.gca())
     xl=ax.get_xlim()
@@ -665,6 +744,68 @@ def drawline(**kwargs):
     except TypeError: pass
         
     return plt.plot(x,y,**kwargs)
+
+def draw_rectangle(x=None,y=None,**kwargs):
+    
+    '''Draws a rectangle in between the specified x and y coordinates.
+    If any coordinates are left out, it uses the current axis limits.
+    It uses matplotlib.patches.Rectangle() and accepts standard keywords.
+    Usage:
+    draw_rectangle(x=scalar or 1D array,y=scalar or 1D array,**kwargs)
+    '''
+    
+    ax=kwargs.pop('ax',plt.gca())
+    ax_xlim=ax.get_xlim()
+    ax_ylim=ax.get_ylim()
+    
+    if x is None:
+        x=ax_xlim[0]
+        kwargs['width']=kwargs.get('width',ax_xlim[1]-x)
+    elif hasattr(x,'__len__'):
+        if len(x)==2:
+            kwargs['width']=kwargs.get('width',x[1]-x[0])
+            x=x[0]
+        elif len(x)==1: 
+            x=x[0]           
+            kwargs['width']=kwargs.get('width',ax_xlim[1]-x)
+    elif type(x) in (int,float):
+        kwargs['width']=kwargs.get('width',ax_xlim[1]-x)
+      
+    if y is None:
+        y=ax_ylim[0]
+        kwargs['height']=kwargs.get('height',ax_ylim[1]-y)
+    elif hasattr(y,'__len__'):
+        if len(y)==2:
+            kwargs['height']=kwargs.get('height',y[1]-y[0]) 
+            y=y[0]
+        elif len(y)==1:
+            y=y[0]
+            kwargs['height']=kwargs.get('height',ax_ylim[1]-y)
+    elif type(y) in (int,float):
+        kwargs['height']=kwargs.get('height',ax_ylim[1]-y)
+    
+    import matplotlib.patches as patches
+    ss=patches.Rectangle((x,y),**kwargs)
+    ax.add_patch(ss)
+    return ax
+
+def fitsplot(fitsfile,**kwargs):
+    '''Loads a 2D fits file and plots it. Squeezes the array if necessary.
+    It uses colorplot() to create the image, so it accepts the usual pcolormesh
+    arguments. It requires pyfits to be installed.
+    '''
+    
+    try:
+        import pyfits
+    except ImportError:
+        print "No pyfits found"
+        print "Install it using 'pip install pyfits'"
+        quit()
+    
+    arr=_np.squeeze(pyfits.getdata(fitsfile))
+    
+    colorplot(arr,**kwargs)
+    
 
 def gridlist(nrows,ncols):
     return iter([str(nrows)+str(ncols)+str(i) for i in xrange(1,nrows*ncols+1)])
@@ -906,3 +1047,4 @@ def _texfonts():
 
 def figuresize(width=6.5,height=5):
     plt.gcf().set_size_inches(width,height)
+
