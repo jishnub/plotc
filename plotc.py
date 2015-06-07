@@ -1,5 +1,5 @@
 from __future__ import division as _division
-from matplotlib import ticker as _ticker,cm as _cm,colors as _colors,pyplot as plt,rcParams as _rcParams
+from matplotlib import ticker as _ticker,cm as _cm,colors as _colors,pyplot as plt
 import numpy as _np
 from mpl_toolkits.mplot3d import Axes3D as _Axes3D
 
@@ -36,10 +36,12 @@ def colorplot(arr,**kwargs):
         print "Ignoring imaginary part"
         arr=_np.real(arr)
     
-    x=kwargs.pop('x',None)
+    x=_np.array(kwargs.pop('x',_np.arange(ash[1])))
     x2=kwargs.pop('x2',None)
-    y=kwargs.pop('y',None)
+    if x2 is not None: x2=_np.array(x2)
+    y=_np.array(kwargs.pop('y',_np.arange(ash[0])))
     y2=kwargs.pop('y2',None)
+    if y2 is not None: y2=_np.array(y2)
     xr=kwargs.pop('xlim',kwargs.pop('xr',None))
     yr=kwargs.pop('ylim',kwargs.pop('yr',None))
     
@@ -82,6 +84,8 @@ def colorplot(arr,**kwargs):
     
     xtick_locator=axes_properties.get('xtick_locator','max')
     ytick_locator=axes_properties.get('ytick_locator','max')
+    xytick_locator=axes_properties.get('xytick_locator',None)
+    if xytick_locator is not None: xtick_locator=ytick_locator='max'
     locator_properties_x=kwargs.pop('locator_properties_x',{})
     locator_properties_x2=kwargs.pop('locator_properties_x2',{})
     locator_properties_y=kwargs.pop('locator_properties_y',{})
@@ -102,7 +106,6 @@ def colorplot(arr,**kwargs):
         print "If plot looks weird you might want to specify x and y"
     
     usetex=kwargs.pop('usetex',False)
-    if usetex:	_texfonts()
     
     amin=arr.min()
     amax=arr.max()
@@ -129,7 +132,7 @@ def colorplot(arr,**kwargs):
     xylabelproperties=kwargs.pop('xylabelproperties',{})
     
     xlabel =axes_properties.get('xlabel',axes_properties.get('xl',xlabel))
-    ylabel =axes_properties.get('ylabel',axes_properties.get('xl',ylabel))
+    ylabel =axes_properties.get('ylabel',axes_properties.get('yl',ylabel))
     
     xlabelproperties.update(xylabelproperties)
     ylabelproperties.update(xylabelproperties)
@@ -137,15 +140,6 @@ def colorplot(arr,**kwargs):
     #~ Set scientific notation on colorbar for small or large values
     cbar_clip=max(abs(vmax),abs(vmin))
     if cbar_clip>1e4 or cbar_clip<1e-2: colorbar_scientific=True
-    
-    #~ Define the coordinate grid, if unspecified
-    if x is None and y is None:
-        x=_np.arange(ash[1])
-        y=_np.arange(ash[0])
-    elif x is None and y is not None:
-        x=_np.arange(ash[1])
-    elif x is not None and y is None:
-        y=_np.arange(ash[0])
     
     #~ Change 2D coordinate meshgrids to 1D
     if len(x.shape) == 2:    x=x[0]
@@ -196,8 +190,8 @@ def colorplot(arr,**kwargs):
     colorbar_properties['ax']=ax
     colorbar_properties['mappable']=mesh
     
-    if colorbar: cbax=_generate_colorbar(**colorbar_properties)  
-    else: cbax=None  
+    if colorbar: cb=_generate_colorbar(**colorbar_properties)  
+    else: cb=None
     
     if x2 is not None: 
         ax2=plt.twiny(ax=ax)
@@ -248,7 +242,12 @@ def colorplot(arr,**kwargs):
  
     ax.set_title(title,**title_properties)
     
-    return ax,cbax
+    if usetex: pass
+        #~ ax.draw=_texfonts(ax.draw)
+        #~ if cb is not None:
+            #~ cb.ax.draw=_texfonts(cb.ax.draw)
+    
+    return ax,cb
     
 def quiver2D(U,V,**kwargs):
     '''Creates a 2D vector plot using the specified x and y components U and V, sampling
@@ -267,11 +266,20 @@ def quiver2D(U,V,**kwargs):
     can specify the key length as scale=... in key_properties. Whenever possible, specify the current axis
     as ax=axis to avoid unwanted behavious arising due to pyplot's gca().
     '''
+    
     gridshape =U.shape
-    x =kwargs.pop('x',_np.linspace(0,10,gridshape[1]))
-    x2=kwargs.pop('x2',None)    
-    y =kwargs.pop('y',_np.linspace(0,10,gridshape[0]))
+    try: assert len(gridshape) == 2
+    except AssertionError: 
+        print "quiver2D requires the two components U and V to be 2D fields."
+        print "Size of array provided is",str(gridshape)+", dimension is",len(gridshape)
+        return
+        
+    x =_np.squeeze(kwargs.pop('x',_np.linspace(0,10,gridshape[1])))
+    x2=kwargs.pop('x2',None)
+    if x2 is not None: x2=_np.squeeze(x2)
+    y =_np.squeeze(kwargs.pop('y',_np.linspace(0,10,gridshape[0])))
     y2=kwargs.pop('y2',None)
+    if y2 is not None: y2=_np.squeeze(y2)
     
     every=kwargs.pop('every',[1,1])
     
@@ -292,6 +300,8 @@ def quiver2D(U,V,**kwargs):
     
     xtick_locator=axes_properties.get('xtick_locator','max')
     ytick_locator=axes_properties.get('ytick_locator','max')
+    xytick_locator=axes_properties.get('xytick_locator',None)
+    if xytick_locator is not None: xtick_locator=ytick_locator='max'
     locator_properties_x=kwargs.pop('locator_properties_x',{})
     locator_properties_x2=kwargs.pop('locator_properties_x2',{})
     locator_properties_y=kwargs.pop('locator_properties_y',{})
@@ -321,13 +331,11 @@ def quiver2D(U,V,**kwargs):
     hide_y2ticklabel=axes_properties.get('hide_y2ticklabels',False)
     
     usetex  =kwargs.pop('usetex',False)
-    key =kwargs.pop('show_key',False)
+    key =kwargs.pop('key',False)
     key_properties  =kwargs.pop('key_properties',{})
     keyscale=key_properties.get('scale',None)
     keyprefix =key_properties.get('prefix',"")
     keysuffix =key_properties.get('suffix',"")
-    
-    if usetex: _texfonts()
     
     ax=kwargs.pop('ax',None)
     if ax is None:
@@ -359,9 +367,18 @@ def quiver2D(U,V,**kwargs):
         if keyscale is None:
             mod=_np.sqrt(U**2+V**2)
             keyscale=mod.max()*0.66
+        
+        sci=key_properties.get('sci',True)
+        fmt=key_properties.get('fmt',None)
+        if (fmt is None) and sci:
             keytext="{:.1e}".format(keyscale)
-        plt.quiverkey(Q,0.8,1.02,keyscale,keyprefix+str(keytext)+keysuffix,labelpos='N',
-        fontproperties={'size':14})
+        elif (fmt is None) and (not sci):
+            keytext="{:2.1f}".format(keyscale)
+        elif fmt is not None:
+            keytext=fmt.format(keyscale)
+        keytext=keyprefix+str(keytext)+keysuffix
+        plt.quiverkey(Q,0.8,1.02,keyscale,keytext,labelpos='N',
+        fontproperties={'size':key_properties.get('fontsize',14)})
     
     #~ Axis limits
     _set_axis_limits(x,y,xr,yr,xrpad=xrpad,yrpad=yrpad,ax=ax)
@@ -393,8 +410,10 @@ def quiver2D(U,V,**kwargs):
     
     ax.set_title(title,**title_properties)
     
+    if usetex: ax.draw=_texfonts(ax.draw)
+    
     return ax
-        
+
 def plot1D(arr,**kwargs):
     '''Plots a 1D function using pyplot's plot. Accepts standard keywords.
     Usage:
@@ -422,7 +441,6 @@ def plot1D(arr,**kwargs):
     subplot_properties=kwargs.pop('subplot_properties',{})
 
     usetex=kwargs.pop('usetex',False)
-    if usetex:				_texfonts()
 
     axes_properties=kwargs.pop('axes_properties',{})
     
@@ -431,7 +449,7 @@ def plot1D(arr,**kwargs):
     xy_sci=axes_properties.get('xy_sci',False)
     xscilimits=axes_properties.get('xscilimits',(-3,3))
     yscilimits=axes_properties.get('yscilimits',(-3,3))
-    if xy_sci:				x_sci=y_sci=True
+    if xy_sci:	x_sci=y_sci=True
     
     hide_xticks=axes_properties.get('hide_xticks',False)
     hide_xticklabels=axes_properties.get('hide_xticklabels',False)
@@ -444,6 +462,8 @@ def plot1D(arr,**kwargs):
     
     xtick_locator=axes_properties.get('xtick_locator','max')
     ytick_locator=axes_properties.get('ytick_locator','max')
+    xytick_locator=axes_properties.get('xytick_locator',None)
+    if xytick_locator is not None: xtick_locator=ytick_locator='max'
     locator_properties_x=kwargs.pop('locator_properties_x',{})
     locator_properties_x2=kwargs.pop('locator_properties_x2',{})
     locator_properties_y=kwargs.pop('locator_properties_y',{})
@@ -527,6 +547,8 @@ def plot1D(arr,**kwargs):
     
     ax.set_title(title,**title_properties)
     
+    if usetex: ax.draw=_texfonts(ax.draw)
+    
     return ax
 
 def sphericalplot(arr,**kwargs):
@@ -556,9 +578,12 @@ def sphericalplot(arr,**kwargs):
         print "Size of array provided is",str(ash)+", dimension is",len(ash)
         return
     
-    print "Assuming latitude along axis 0 and longitude along axis 1."
-    print "If the plot looks all right you can safely ignore this warning."
-    print "Otherwise you might want to transpose your array."
+    warning=kwargs.pop('warn',True)
+    
+    if warning:
+        print "Assuming latitude along axis 0 and longitude along axis 1."
+        print "If the plot looks all right you can safely ignore this warning."
+        print "Otherwise you might want to transpose your array."
     
     if arr.dtype=='complex128' or arr.dtype=='complex64':
         print "Ignoring imaginary part"
@@ -616,6 +641,8 @@ def sphericalplot(arr,**kwargs):
     title =kwargs.pop('title',ax.get_title())
     title_properties=kwargs.pop('title_properties',{})
     
+    usetex=kwargs.pop('usetex',False)
+    
     if centerzero:        vmin,vmax=_center_range_around_zero(vmin,vmax,amin,amax)
 
     phi=kwargs.get('phi',_np.linspace(0, 2 * _np.pi, ash[1]))
@@ -648,8 +675,8 @@ def sphericalplot(arr,**kwargs):
     if cbar_clip>1e4 or cbar_clip<1e-2: colorbar_properties['scientific']=True
     
     colorbar_properties['mappable']=scm    
-    if colorbar: cbax=_generate_colorbar(**colorbar_properties)
-    else: cbax=None
+    if colorbar: cb=_generate_colorbar(**colorbar_properties)
+    else: cb=None
 
     if flipx: ax.invert_xaxis()
     if flipy: ax.invert_yaxis()
@@ -661,7 +688,12 @@ def sphericalplot(arr,**kwargs):
     
     ax.set_title(title,**title_properties)
     
-    return ax,cbax
+    if usetex: 
+        ax.draw=_texfonts(ax.draw)
+        if cb is not None:
+            cb.ax.draw=_texfonts(cb.ax.draw)
+    
+    return ax,cb
 
 def draw_vlines(x,**kwargs):
     
@@ -713,37 +745,6 @@ def draw_hlines(y,**kwargs):
     kwargs['colors']=kwargs.get('colors',kwargs.pop('col','k'))
     
     return ax,ax.hlines(y,xmin,xmax,**kwargs)
-
-def draw_line(**kwargs):
-    
-    ax=kwargs.pop('ax',plt.gca())
-    xl=ax.get_xlim()
-    yl=ax.get_ylim()
-    
-    x=kwargs.pop('x',xl)
-    y=kwargs.pop('y',yl)
-    
-    try: 
-        if len(y)==1: y=y[0]
-    except: pass
-    try: 
-        if len(x)==1: x=x[0]
-    except: pass
-    if (not isinstance(x,list) and not isinstance(x,tuple)
-        and not isinstance(y,list) and not isinstance(y,tuple)):
-        print "Either x or y needs to be a range"
-        return
-    
-    try: 
-        int(y)
-        y=[y,y]
-    except TypeError: pass
-    try: 
-        int(x)
-        x=[x,x]
-    except TypeError: pass
-        
-    return plt.plot(x,y,**kwargs)
 
 def draw_rectangle(x=None,y=None,**kwargs):
     
@@ -863,9 +864,12 @@ def _shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
     return newcmap
 
 def _getlocator(tick_locator):
-			if tick_locator=='linear': return _ticker.LinearLocator
-			elif tick_locator=='fixed': return _ticker.LinearLocator
-			else: return _ticker.MaxNLocator
+    if tick_locator=='linear': return _ticker.LinearLocator
+    elif tick_locator=='fixed': return _ticker.FixedLocator
+    elif tick_locator=='log': return _ticker.LogLocator
+    elif tick_locator=='null': return _ticker.NullLocator
+    elif tick_locator=='multiple': return _ticker.MultipleLocator
+    else: return _ticker.MaxNLocator
 
 def _get_appropriate_colormap(vmin,vmax):
     
@@ -982,23 +986,39 @@ def _set_axis_limits(xgrid,ygrid,xr,yr,xrpad=False,yrpad=False,dim=2,**kwargs):
 def _generate_colorbar(**colorbar_properties):
     
     colorbar_scientific=colorbar_properties.pop('scientific',False)
-    cbar_title=colorbar_properties.pop('title',None)
+    
     ticklabels=colorbar_properties.pop('ticklabels',None)
+    ticks=colorbar_properties.pop('ticks',None)
+    
+    cbar_title=colorbar_properties.pop('title',None)
+    title_properties=colorbar_properties.pop('title_properties',{})
+    
+    title_properties['horizontalalignment']=title_properties.get('horizontalalignment','center')
+    title_properties['verticalalignment']=title_properties.get('verticalalignment','center')
+    
+    orientation=colorbar_properties.get('orientation','vertical')
+    
+    title_xcoord=title_properties.pop('x',1 if orientation=='vertical' else 0.5)
+    title_ycoord=title_properties.pop('y',1.08 if orientation=='vertical' else -2.0)
+    
+    visible=colorbar_properties.pop('visible',True)
     
     cb=plt.colorbar(format="%1.0e" if colorbar_scientific else None,**colorbar_properties)
-    orientation=cb.orientation
+    
+    if ticks is None:
+        cb.locator = _ticker.MaxNLocator(nbins=5)
+        cb.update_ticks()
+    else:
+        cb.locator = _ticker.FixedLocator(ticks)
+        cb.update_ticks()
     
     if ticklabels is not None: 
         cb.set_ticklabels(ticklabels)
     
-    if not 'ticks' in colorbar_properties:
-        cb.locator = _ticker.MaxNLocator(nbins=5)
-        cb.update_ticks()
-    
     if cbar_title is not None:
-        cax=cb.ax
-        cax.text(-0.5,1.02,cbar_title,rotation=0,fontsize=15)
+        cb.ax.text(title_xcoord,title_ycoord,cbar_title,**title_properties)
     
+    cb.ax.set_visible(visible)
     return cb
     
 def _subplot_index_is_valid(subplot_index):
@@ -1040,11 +1060,28 @@ def _subplot_index_is_valid(subplot_index):
     
     return True
 
-def _texfonts():
-    _rcParams['font.family'] = 'serif'
-    _rcParams['font.serif'] = ['Helvetica']
-    _rcParams['text.usetex'] = True
+def _texfonts(f):
+    params={
+    'font.family':'serif',
+    'font.serif':'Helvetica',
+    'text.usetex':True
+    }
+    # wrap_rcparams from http://stackoverflow.com/questions/22569071/matplotlib-change-math-font-size-and-then-go-back-to-default
+    def _wrap_rcparams(f, params):
+        def _f(*args, **kw):
+            backup = {key:plt.rcParams[key] for key in params}
+            plt.rcParams.update(params)
+            f(*args, **kw)
+            plt.rcParams.update(backup)
+        return _f
+    return _wrap_rcparams(f,params)
 
-def figuresize(width=6.5,height=5):
-    plt.gcf().set_size_inches(width,height)
-
+def figuresize(width=6.5,height=5,unit='inches'):
+    if unit in ['inches','in','inch']:
+        plt.gcf().set_size_inches(width,height)
+    elif unit in ['cm','centimeter','centimeters']:
+        plt.gcf().set_size_inches(width/2.54,height/2.54)
+    elif unit in ['mm','millimeter','millimeters']:
+        plt.gcf().set_size_inches(width/25.4,height/25.4)
+    else:
+        print "Figure size has to be in inches,centimeters or millimeters"
