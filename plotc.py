@@ -104,22 +104,34 @@ def colorplot(arr,**kwargs):
     hide_y2ticklabels=axes_properties.get('hide_y2ticklabels',False)
     
     xtick_locator=axes_properties.get('xtick_locator','max')
+    x2tick_locator=axes_properties.get('x2tick_locator',axes_properties.get('xtick_locator','max'))
     ytick_locator=axes_properties.get('ytick_locator','max')
+    y2tick_locator=axes_properties.get('y2tick_locator',axes_properties.get('ytick_locator','max'))
     xytick_locator=axes_properties.get('xytick_locator',None)
-    if xytick_locator is not None: xtick_locator=ytick_locator='max'
-    locator_properties_x=kwargs.pop('locator_properties_x',{})
-    locator_properties_x2=kwargs.pop('locator_properties_x2',{})
-    locator_properties_y=kwargs.pop('locator_properties_y',{})
-    locator_properties_y2=kwargs.pop('locator_properties_y2',{})
-    locator_properties_xy=kwargs.pop('locator_properties_xy',{})
-    locator_properties_x2y2=kwargs.pop('locator_properties_x2y2',{})
+    x2y2tick_locator=axes_properties.get('xytick_locator',axes_properties.get('xytick_locator',None))
+    
+    if xytick_locator is not None: xtick_locator=ytick_locator=xytick_locator
+    if x2y2tick_locator is not None: x2tick_locator=y2tick_locator=x2y2tick_locator
+    
+    locator_properties_x=axes_properties.get('locator_properties_x',{})
+    locator_properties_x2=axes_properties.get('locator_properties_x2',axes_properties.get('locator_properties_x',{}))
+    locator_properties_y=axes_properties.get('locator_properties_y',{})
+    locator_properties_y2=axes_properties.get('locator_properties_y2',axes_properties.get('locator_properties_y',{}))
+    locator_properties_xy=axes_properties.get('locator_properties_xy',{})
+    locator_properties_x2y2=axes_properties.get('locator_properties_x2y2',axes_properties.get('locator_properties_xy',{}))
+    
+    if xtick_locator=='max':  
+        if not ('nbins' in locator_properties_x): locator_properties_x['nbins']=5
+    if ytick_locator=='max':  
+        if not ('nbins' in locator_properties_y): locator_properties_y['nbins']=5
     
     locator_properties_x.update(locator_properties_xy)
     locator_properties_y.update(locator_properties_xy)
+    locator_properties_x2.update(locator_properties_x)
+    locator_properties_y2.update(locator_properties_y)
     locator_properties_x2.update(locator_properties_x2y2)
     locator_properties_y2.update(locator_properties_x2y2)
-
-        
+    
     polar=subplot_properties.get('polar',False)
     if polar: 
         print "Note: Assuming x is theta and y is r"
@@ -524,18 +536,31 @@ def plot1D(arr,**kwargs):
     hide_y2ticklabels=axes_properties.get('hide_y2ticklabels',False)
     
     xtick_locator=axes_properties.get('xtick_locator','max')
+    x2tick_locator=axes_properties.get('x2tick_locator',axes_properties.get('xtick_locator','max'))
     ytick_locator=axes_properties.get('ytick_locator','max')
+    y2tick_locator=axes_properties.get('y2tick_locator',axes_properties.get('ytick_locator','max'))
     xytick_locator=axes_properties.get('xytick_locator',None)
-    if xytick_locator is not None: xtick_locator=ytick_locator='max'
-    locator_properties_x=kwargs.pop('locator_properties_x',{})
-    locator_properties_x2=kwargs.pop('locator_properties_x2',{})
-    locator_properties_y=kwargs.pop('locator_properties_y',{})
-    locator_properties_y2=kwargs.pop('locator_properties_y2',{})
-    locator_properties_xy=kwargs.pop('locator_properties_xy',{})
-    locator_properties_x2y2=kwargs.pop('locator_properties_x2y2',{})
+    x2y2tick_locator=axes_properties.get('xytick_locator',axes_properties.get('xytick_locator',None))
+    
+    if xytick_locator is not None: xtick_locator=ytick_locator=xytick_locator
+    if x2y2tick_locator is not None: x2tick_locator=y2tick_locator=x2y2tick_locator
+    
+    locator_properties_x=axes_properties.get('locator_properties_x',{})
+    locator_properties_x2=axes_properties.get('locator_properties_x2',axes_properties.get('locator_properties_x',{}))
+    locator_properties_y=axes_properties.get('locator_properties_y',{})
+    locator_properties_y2=axes_properties.get('locator_properties_y2',axes_properties.get('locator_properties_y',{}))
+    locator_properties_xy=axes_properties.get('locator_properties_xy',{})
+    locator_properties_x2y2=axes_properties.get('locator_properties_x2y2',axes_properties.get('locator_properties_xy',{}))
+    
+    if xtick_locator=='max':  
+        if not ('nbins' in locator_properties_x): locator_properties_x['nbins']=5
+    if ytick_locator=='max':  
+        if not ('nbins' in locator_properties_y): locator_properties_y['nbins']=5
     
     locator_properties_x.update(locator_properties_xy)
     locator_properties_y.update(locator_properties_xy)
+    locator_properties_x2.update(locator_properties_x)
+    locator_properties_y2.update(locator_properties_y)
     locator_properties_x2.update(locator_properties_x2y2)
     locator_properties_y2.update(locator_properties_x2y2)
 
@@ -664,18 +689,31 @@ def quiver2D(U,V,**kwargs):
     ytickpad=axes_properties.get('ytickpad',6.)
     
     xtick_locator=axes_properties.get('xtick_locator','max')
+    x2tick_locator=axes_properties.get('x2tick_locator',axes_properties.get('xtick_locator','max'))
     ytick_locator=axes_properties.get('ytick_locator','max')
+    y2tick_locator=axes_properties.get('y2tick_locator',axes_properties.get('ytick_locator','max'))
     xytick_locator=axes_properties.get('xytick_locator',None)
-    if xytick_locator is not None: xtick_locator=ytick_locator='max'
-    locator_properties_x=kwargs.pop('locator_properties_x',{})
-    locator_properties_x2=kwargs.pop('locator_properties_x2',{})
-    locator_properties_y=kwargs.pop('locator_properties_y',{})
-    locator_properties_y2=kwargs.pop('locator_properties_y2',{})
-    locator_properties_xy=kwargs.pop('locator_properties_xy',{})
-    locator_properties_x2y2=kwargs.pop('locator_properties_x2y2',{})
+    x2y2tick_locator=axes_properties.get('xytick_locator',axes_properties.get('xytick_locator',None))
+    
+    if xytick_locator is not None: xtick_locator=ytick_locator=xytick_locator
+    if x2y2tick_locator is not None: x2tick_locator=y2tick_locator=x2y2tick_locator
+    
+    locator_properties_x=axes_properties.get('locator_properties_x',{})
+    locator_properties_x2=axes_properties.get('locator_properties_x2',axes_properties.get('locator_properties_x',{}))
+    locator_properties_y=axes_properties.get('locator_properties_y',{})
+    locator_properties_y2=axes_properties.get('locator_properties_y2',axes_properties.get('locator_properties_y',{}))
+    locator_properties_xy=axes_properties.get('locator_properties_xy',{})
+    locator_properties_x2y2=axes_properties.get('locator_properties_x2y2',axes_properties.get('locator_properties_xy',{}))
+    
+    if xtick_locator=='max':  
+        if not ('nbins' in locator_properties_x): locator_properties_x['nbins']=5
+    if ytick_locator=='max':  
+        if not ('nbins' in locator_properties_y): locator_properties_y['nbins']=5
     
     locator_properties_x.update(locator_properties_xy)
     locator_properties_y.update(locator_properties_xy)
+    locator_properties_x2.update(locator_properties_x)
+    locator_properties_y2.update(locator_properties_y)
     locator_properties_x2.update(locator_properties_x2y2)
     locator_properties_y2.update(locator_properties_x2y2)
     
