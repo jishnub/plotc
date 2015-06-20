@@ -58,6 +58,7 @@ def colorplot(arr,**kwargs):
         arr=_np.real(arr)
     
     x=_np.array(kwargs.pop('x',_np.arange(ash[1])))
+    
     x2=kwargs.pop('x2',None)
     if x2 is not None: x2=_np.array(x2)
     y=_np.array(kwargs.pop('y',_np.arange(ash[0])))
@@ -488,6 +489,14 @@ def _get_centered_grid_for_pcolormesh(x=None,y=None):
 
 def gridlist(nrows,ncols):
     return iter([str(nrows)+str(ncols)+str(i) for i in xrange(1,nrows*ncols+1)])
+
+def _is_natural_ordered(arr):
+    assert len(arr.shape)==1,"Axis has to be 1D"
+    
+    tolerance=1e-10
+    c=_np.diff(_np.fft.fftshift(arr))
+    if (abs(c-c[0])<tolerance).all(): return True
+    else: return False
 
 def plot1D(arr,**kwargs):
     '''Plots a 1D function using pyplot's plot. Accepts standard keywords.
@@ -924,6 +933,29 @@ def _shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
     plt.register_cmap(cmap=newcmap)
 
     return newcmap
+
+def spectrumplot(arr,**kwargs):
+    
+    arr=_np.squeeze(arr)
+    ash=arr.shape
+    
+    x=kwargs.pop('x',None)
+    y=kwargs.pop('y',None)
+    
+    if x is not None: x=_np.array(x)
+    else: x=_np.fft.fftfreq(ash[1])*ash[1]
+        
+    if y is not None: y=_np.array(y)
+    else: y=_np.fft.fftfreq(ash[0])*ash[0]
+    
+    if _is_natural_ordered(x) and _is_natural_ordered(y):
+        colorplot(_np.fft.fftshift(arr),x=_np.fft.fftshift(x),y=_np.fft.fftshift(y),**kwargs)
+    elif _is_natural_ordered(x) and (not _is_natural_ordered(y)):
+        colorplot(_np.fft.fftshift(arr,axes=0),x=_np.fft.fftshift(x),y=y,**kwargs)
+    elif (not _is_natural_ordered(x)) and _is_natural_ordered(y):
+        colorplot(_np.fft.fftshift(arr,axes=1),x=x,y=_np.fft.fftshift(y),**kwargs)
+    else:
+        colorplot(arr,x=x,y=y,**kwargs)
 
 def sphericalplot(arr,**kwargs):
     
