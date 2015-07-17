@@ -3,6 +3,10 @@ from matplotlib import ticker as _ticker,cm as _cm,colors as _colors,pyplot as p
 import numpy as _np
 from mpl_toolkits.mplot3d import Axes3D as _Axes3D
 
+#~ Convenience matplotlib namespace exports
+plot=plt.plot
+show=plt.show
+figure=plt.figure
 
 def _center_range_around_zero(vmin,vmax,amin,amax):
     if vmax*vmin<0:
