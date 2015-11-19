@@ -953,13 +953,13 @@ def spectrumplot(arr,**kwargs):
     else: y=_np.fft.fftfreq(ash[0])*ash[0]
     
     if _is_natural_ordered(x) and _is_natural_ordered(y):
-        colorplot(_np.fft.fftshift(arr),x=_np.fft.fftshift(x),y=_np.fft.fftshift(y),**kwargs)
+        return colorplot(_np.fft.fftshift(arr),x=_np.fft.fftshift(x),y=_np.fft.fftshift(y),**kwargs)
     elif _is_natural_ordered(x) and (not _is_natural_ordered(y)):
-        colorplot(_np.fft.fftshift(arr,axes=0),x=_np.fft.fftshift(x),y=y,**kwargs)
+        return colorplot(_np.fft.fftshift(arr,axes=0),x=_np.fft.fftshift(x),y=y,**kwargs)
     elif (not _is_natural_ordered(x)) and _is_natural_ordered(y):
-        colorplot(_np.fft.fftshift(arr,axes=1),x=x,y=_np.fft.fftshift(y),**kwargs)
+        return colorplot(_np.fft.fftshift(arr,axes=1),x=x,y=_np.fft.fftshift(y),**kwargs)
     else:
-        colorplot(arr,x=x,y=y,**kwargs)
+        return colorplot(arr,x=x,y=y,**kwargs)
 
 def sphericalplot(arr,**kwargs):
     
