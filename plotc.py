@@ -256,7 +256,8 @@ def colorplot(arr,**kwargs):
     if flipy: ax.invert_yaxis()
 
     
-    if hide_xticks: ax.set_xticks([])
+    #~ if hide_xticks: ax.set_xticks([])
+    if hide_xticks: plt.setp(ax.get_xticks(),visible=False)
     else: 
 		ax.get_xaxis().set_major_locator(_getlocator(xtick_locator)(**locator_properties_x))
 		if x_sci:    ax.ticklabel_format(axis='x', style='sci', scilimits=xscilimits)
@@ -264,7 +265,8 @@ def colorplot(arr,**kwargs):
 			tick.set_pad(xtickpad)
 			tick.label1 = tick._get_text1()
 
-    if hide_yticks: ax.set_yticks([])
+    #~ if hide_yticks: ax.set_yticks([])
+    if hide_yticks: plt.setp(ax.get_yticks(),visible=False)
     else: 
 		ax.get_yaxis().set_major_locator(_getlocator(ytick_locator)(**locator_properties_y))
 		if y_sci:    ax.ticklabel_format(axis='y', style='sci', scilimits=yscilimits)
@@ -272,8 +274,10 @@ def colorplot(arr,**kwargs):
 			tick.set_pad(ytickpad)
 			tick.label1 = tick._get_text1()
     
-    if hide_xticklabels: ax.set_xticklabels([])
-    if hide_yticklabels: ax.set_yticklabels([])
+    #~ if hide_xticklabels: ax.set_xticklabels([])
+    if hide_xticklabels: plt.setp(ax.get_xticklabels(),visible=False)
+    #~ if hide_yticklabels: ax.set_yticklabels([])
+    if hide_yticklabels: plt.setp(ax.get_yticklabels(),visible=False)
     
     ax.set_xlabel(xlabel,**xlabelproperties)
     ax.set_ylabel(ylabel,**ylabelproperties)
