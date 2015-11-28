@@ -209,7 +209,7 @@ def colorplot(arr,**kwargs):
 
     #~ Take care of empty colorbar range
     if vmin==vmax:         
-        print "Constant colorbar range, colorbar will reflect an offset of 10^-10"
+        print "Constant colorbar range in subplot "+str(subplot_index)+", colorbar will reflect an offset of 10^-10"
         vmax=vmin+1e-10
         colorbar_scientific=True
     
@@ -274,9 +274,7 @@ def colorplot(arr,**kwargs):
 			tick.set_pad(ytickpad)
 			tick.label1 = tick._get_text1()
     
-    #~ if hide_xticklabels: ax.set_xticklabels([])
     if hide_xticklabels: plt.setp(ax.get_xticklabels(),visible=False)
-    #~ if hide_yticklabels: ax.set_yticklabels([])
     if hide_yticklabels: plt.setp(ax.get_yticklabels(),visible=False)
     
     ax.set_xlabel(xlabel,**xlabelproperties)
@@ -756,6 +754,8 @@ def quiver2D(U,V,**kwargs):
     keyscale=key_properties.get('scale',None)
     keyprefix =key_properties.get('prefix',"")
     keysuffix =key_properties.get('suffix',"")
+    
+    kwargs['rasterized']=kwargs.get('rasterized',True)
     
     ax=kwargs.pop('ax',None)
     if ax is None:
