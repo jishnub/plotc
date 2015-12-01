@@ -8,7 +8,7 @@ plot=plt.plot
 show=plt.show
 figure=plt.figure
 
-def _center_range_around_zero(vmin,vmax,amin,amax):
+def _center_range_around_zero(vmin,vmax,amin,amax,subplot_index=111):
     if vmax*vmin<0:
         if vmin == amin and vmax != amax:
                 vmin=-vmax
@@ -23,7 +23,7 @@ def _center_range_around_zero(vmin,vmax,amin,amax):
             vmax=max(amax,-amin)
             vmin=-vmax
     elif vmax*vmin==0:
-        print "Zero lies on colormap border, can't center around zero"
+        print "Zero lies on colormap border in subplot "+str(subplot_index)+", can't center around zero"
     else:
         print "Zero lies outside colorbar range, can't center around zero"
     return vmin,vmax
@@ -151,7 +151,7 @@ def colorplot(arr,**kwargs):
     vmin=kwargs.pop('vmin',amin)
     vmax=kwargs.pop('vmax',amax)
     
-    if centerzero: 	vmin,vmax=_center_range_around_zero(vmin,vmax,amin,amax)
+    if centerzero: 	vmin,vmax=_center_range_around_zero(vmin,vmax,amin,amax,subplot_index)
 
     ax=kwargs.get('ax',None)
     if ax is None:
@@ -1057,7 +1057,7 @@ def sphericalplot(arr,**kwargs):
     
     usetex=kwargs.pop('usetex',False)
     
-    if centerzero:        vmin,vmax=_center_range_around_zero(vmin,vmax,amin,amax)
+    if centerzero:        vmin,vmax=_center_range_around_zero(vmin,vmax,amin,amax,subplot_index)
 
     phi=kwargs.get('phi',_np.linspace(0, 2 * _np.pi, ash[1]))
     theta =kwargs.get('theta',_np.linspace(0, _np.pi, ash[0]))
@@ -1164,3 +1164,12 @@ def _texfonts(f):
         return _f
     return _wrap_rcparams(f,params)
 
+def layout_subplots(numplots):
+    '''Returns nrows,ncols'''
+    if numplots<=3: nrows=1;ncols=numplots
+    elif numplots==4: nrows=2;ncols=2
+    elif numplots<=6: nrows=2;ncols=3
+    elif numplots<=9: nrows=3;ncols=3
+    else: nrows= int(numplots//4);ncols=4
+    
+    return nrows,ncols,gridlist(nrows,ncols)
