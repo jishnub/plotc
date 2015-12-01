@@ -153,7 +153,7 @@ def colorplot(arr,**kwargs):
     
     if centerzero: 	vmin,vmax=_center_range_around_zero(vmin,vmax,amin,amax,subplot_index)
 
-    ax=kwargs.get('ax',None)
+    ax=kwargs.pop('ax',None)
     if ax is None:
         if int(subplot_index) ==111: 
 			plt.clf()
@@ -287,7 +287,7 @@ def colorplot(arr,**kwargs):
         if cb is not None:
             cb.ax.draw=_texfonts(cb.ax.draw)
     
-    return ax,cb
+    return ax,cb,mesh
 
 def draw_hlines(y,**kwargs):
     
