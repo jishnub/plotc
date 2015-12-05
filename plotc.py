@@ -1,7 +1,7 @@
 from __future__ import division as _division
 from matplotlib import ticker as _ticker,cm as _cm,colors as _colors,pyplot as plt
 import numpy as _np
-from mpl_toolkits.mplot3d import Axes3D as _Axes3D
+
 
 #~ Convenience matplotlib namespace exports
 plot=plt.plot
@@ -159,12 +159,12 @@ def colorplot(arr,**kwargs):
 			plt.clf()
         ax=plt.subplot(subplot_index,**subplot_properties)
     
-    title =kwargs.pop('title',ax.get_title())
+    title =kwargs.pop('title',None)
     title=axes_properties.get('title',title)
-    title_properties=kwargs.pop('title_properties',{})
+    title_properties=kwargs.pop('title_properties',axes_properties.get('title_properties',{}))
     
-    xlabel=kwargs.pop('xl',kwargs.pop('xlabel',ax.get_xlabel()))
-    ylabel=kwargs.pop('yl',kwargs.pop('ylabel',ax.get_ylabel()))
+    xlabel=kwargs.pop('xl',kwargs.pop('xlabel',None))
+    ylabel=kwargs.pop('yl',kwargs.pop('ylabel',None))
     xlabelproperties=kwargs.pop('xlabelproperties',{})
     ylabelproperties=kwargs.pop('ylabelproperties',{})
     xylabelproperties=kwargs.pop('xylabelproperties',{})
@@ -176,8 +176,8 @@ def colorplot(arr,**kwargs):
     ylabelproperties.update(xylabelproperties)
     
     #~ Set scientific notation on colorbar for small or large values
-    cbar_clip=max(abs(vmax),abs(vmin))
-    if cbar_clip>1e4 or cbar_clip<1e-2: colorbar_scientific=True
+    #~ cbar_clip=max(abs(vmax),abs(vmin))
+    #~ if cbar_clip>1e4 or cbar_clip<1e-2: colorbar_scientific=True
     
     #~ Change 2D coordinate meshgrids to 1D
     if len(x.shape) == 2:    x=x[0]
@@ -277,10 +277,10 @@ def colorplot(arr,**kwargs):
     if hide_xticklabels: plt.setp(ax.get_xticklabels(),visible=False)
     if hide_yticklabels: plt.setp(ax.get_yticklabels(),visible=False)
     
-    ax.set_xlabel(xlabel,**xlabelproperties)
-    ax.set_ylabel(ylabel,**ylabelproperties)
+    if xlabel: ax.set_xlabel(xlabel,**xlabelproperties)
+    if ylabel: ax.set_ylabel(ylabel,**ylabelproperties)
  
-    ax.set_title(title,**title_properties)
+    if title: ax.set_title(title,**title_properties)
     
     if usetex:
         ax.draw=_texfonts(ax.draw)
@@ -288,6 +288,23 @@ def colorplot(arr,**kwargs):
             cb.ax.draw=_texfonts(cb.ax.draw)
     
     return ax,cb,mesh
+
+#~ Custom div cmap from http://pyhogs.github.io/colormap-examples.html
+def custom_div_cmap(numcolors=11, name='custom_div_cmap',
+                    mincol=(0.019607843831181526, 0.18823529779911041, 0.3803921639919281, 1.0), 
+                    midcol='white', maxcol='darkred'):
+    """ Create a custom diverging colormap with three colors
+    
+    Default is blue to white to red with 11 colors.  Colors can be specified
+    in any way understandable by matplotlib.colors.ColorConverter.to_rgb()
+    """
+
+    from matplotlib.colors import LinearSegmentedColormap 
+    
+    cmap = LinearSegmentedColormap.from_list(name=name, 
+                                             colors =[mincol, midcol, maxcol],
+                                             N=numcolors)
+    return cmap
 
 def draw_hlines(y,**kwargs):
     
@@ -431,7 +448,8 @@ def _generate_colorbar(**colorbar_properties):
     
     visible=colorbar_properties.pop('visible',True)
     
-    cb=plt.colorbar(format="%1.0e" if colorbar_scientific else None,**colorbar_properties)
+    textformat = colorbar_properties.pop('format',colorbar_properties.pop('fmt',"%1.0e"))
+    cb=plt.colorbar(format=textformat if colorbar_scientific else None,**colorbar_properties)
     
     if ticks is None:
         cb.locator = _ticker.MaxNLocator(nbins=5)
@@ -604,8 +622,8 @@ def plot1D(arr,**kwargs):
         ylim_original=ax.get_ylim()
         xlim_original=ax.get_xlim()
     
-    xlabel=kwargs.pop('xl',kwargs.pop('xlabel',ax.get_xlabel()))
-    ylabel=kwargs.pop('yl',kwargs.pop('ylabel',ax.get_ylabel()))
+    xlabel=kwargs.pop('xl',kwargs.pop('xlabel',None))
+    ylabel=kwargs.pop('yl',kwargs.pop('ylabel',None))
     xlabelproperties=kwargs.pop('xlabelproperties',{})
     ylabelproperties=kwargs.pop('ylabelproperties',{})
     xylabelproperties =kwargs.pop('xylabelproperties',{})
@@ -616,9 +634,9 @@ def plot1D(arr,**kwargs):
     xlabelproperties.update(xylabelproperties)
     ylabelproperties.update(xylabelproperties)
     
-    title=kwargs.pop('title',ax.get_title())
+    title=kwargs.pop('title',None)
     title =axes_properties.get('title',title)
-    title_properties=kwargs.pop('title_properties',{})
+    title_properties=kwargs.pop('title_properties',axes_properties.get('title_properties',{}))
         
     if x is None:    x=_np.arange(Npts)    
     
@@ -645,10 +663,9 @@ def plot1D(arr,**kwargs):
     if hide_xticklabels: ax.set_xticklabels([])
     if hide_yticklabels: ax.set_yticklabels([])
     
-    ax.set_xlabel(xlabel,**xlabelproperties)
-    ax.set_ylabel(ylabel,**ylabelproperties)
-    
-    ax.set_title(title,**title_properties)
+    if xlabel: ax.set_xlabel(xlabel,**xlabelproperties)
+    if ylabel: ax.set_ylabel(ylabel,**ylabelproperties)
+    if title:  ax.set_title(title,**title_properties)
     
     if usetex: ax.draw=_texfonts(ax.draw)
     
@@ -984,6 +1001,8 @@ def sphericalplot(arr,**kwargs):
     arising due to the default behaviour of pyplot's gca().
     '''
 
+    from mpl_toolkits.mplot3d import Axes3D as _Axes3D
+
     arr=_np.squeeze(arr)
     ash=arr.shape
     try: assert len(ash) == 2
@@ -1037,9 +1056,9 @@ def sphericalplot(arr,**kwargs):
         if int(subplot_index) ==111: plt.clf(); 
         ax=plt.subplot(subplot_index, projection='3d')
     
-    xlabel=kwargs.pop('xl',kwargs.pop('xlabel',ax.get_xlabel()))
-    ylabel=kwargs.pop('yl',kwargs.pop('ylabel',ax.get_ylabel()))
-    zlabel=kwargs.pop('zl',kwargs.pop('zlabel',ax.get_zlabel()))
+    xlabel=kwargs.pop('xl',kwargs.pop('xlabel',None))
+    ylabel=kwargs.pop('yl',kwargs.pop('ylabel',None))
+    zlabel=kwargs.pop('zl',kwargs.pop('zlabel',None))
     xlabel=axes_properties.get('xl',axes_properties.get('xlabel',xlabel))
     ylabel=axes_properties.get('yl',axes_properties.get('ylabel',ylabel))
     zlabel=axes_properties.get('zl',axes_properties.get('zlabel',zlabel))
@@ -1052,7 +1071,7 @@ def sphericalplot(arr,**kwargs):
     ylabelproperties.update(xyzlabelproperties)
     zlabelproperties.update(xyzlabelproperties)
     
-    title =kwargs.pop('title',ax.get_title())
+    title =kwargs.pop('title',None)
     title_properties=kwargs.pop('title_properties',{})
     
     usetex=kwargs.pop('usetex',False)
@@ -1096,11 +1115,11 @@ def sphericalplot(arr,**kwargs):
     if flipy: ax.invert_yaxis()
     if flipz: ax.invert_zaxis()
     
-    ax.set_xlabel(xlabel,**xlabelproperties)
-    ax.set_ylabel(ylabel,**ylabelproperties)
-    ax.set_zlabel(zlabel,**zlabelproperties)
+    if xlabel: ax.set_xlabel(xlabel,**xlabelproperties)
+    if ylabel: ax.set_ylabel(ylabel,**ylabelproperties)
+    if zlabel: ax.set_zlabel(zlabel,**zlabelproperties)
     
-    ax.set_title(title,**title_properties)
+    if title: ax.set_title(title,**title_properties)
     
     if usetex: 
         ax.draw=_texfonts(ax.draw)
