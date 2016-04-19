@@ -1,4 +1,4 @@
-from __future__ import division as _division
+from __future__ import division as _division,print_function
 from matplotlib import ticker as _ticker,cm as _cm,colors as _colors,pyplot as plt,rc
 import numpy as _np
 import matplotlib
@@ -77,9 +77,9 @@ def _center_range_around_zero(vmin,vmax,amin,amax,subplot_index=111):
             vmax=max(amax,-amin)
             vmin=-vmax
     elif vmax*vmin==0:
-        print "Zero lies on colormap border in subplot "+str(subplot_index)+", can't center around zero"
+        print("Zero lies on colormap border in subplot "+str(subplot_index)+", can't center around zero")
     else:
-        print "Zero lies outside colorbar range, can't center around zero"
+        print("Zero lies outside colorbar range, can't center around zero")
     return vmin,vmax
 
 def colorplot(arr,**kwargs):
@@ -107,12 +107,12 @@ def colorplot(arr,**kwargs):
     ash=arr.shape
     try: assert len(ash) == 2
     except AssertionError: 
-        print "Colorplot requires 2D arrays"
-        print "Size of array provided is",str(ash)+", dimension is",len(ash)
+        print("Colorplot requires 2D arrays")
+        print("Size of array provided is",str(ash)+", dimension is",len(ash))
         return
     
     if arr.dtype=='complex128' or arr.dtype=='complex64':
-        print "Ignoring imaginary part"
+        print("Ignoring imaginary part")
         arr=_np.real(arr)
         
     (ax,axes_properties,centerzero,cmap,colorbar,colorbar_properties,flipx,flipy,
@@ -132,11 +132,11 @@ def colorplot(arr,**kwargs):
     if vmin is None: vmin=amin
     if vmax is None: vmax=amax
     
-    if centerzero: 	vmin,vmax=_center_range_around_zero(vmin,vmax,amin,amax,subplot_index)
+    if centerzero:  vmin,vmax=_center_range_around_zero(vmin,vmax,amin,amax,subplot_index)
     
     #~ Take care of empty colorbar range
     if vmin==vmax:         
-        print "Constant colorbar range in subplot "+str(subplot_index)+", colorbar will reflect an offset of 10^-10"
+        print("Constant colorbar range in subplot "+str(subplot_index)+", colorbar will reflect an offset of 10^-10")
         vmax=vmin+1e-10
         colorbar_scientific=True
         
@@ -157,20 +157,20 @@ def colorplot(arr,**kwargs):
     except AssertionError:
         if Nx==ash[0] and Ny==ash[1]: arr=arr.T
         elif Nx==ash[1] and Ny!=ash[0]: 
-            print "Array sizes do not match"
-            print "Size of array",ash
-            print "Length of y array is "+str(Ny)+", required size is",ash[0]
+            print("Array sizes do not match")
+            print("Size of array",ash)
+            print("Length of y array is "+str(Ny)+", required size is",ash[0])
             return
         elif Ny==ash[0] and Nx!=ash[1]:
-            print "Array sizes do not match"
-            print "Size of array",ash
-            print "Length of x array is "+str(Nx)+", required size is",ash[1]
+            print("Array sizes do not match")
+            print("Size of array",ash)
+            print("Length of x array is "+str(Nx)+", required size is",ash[1])
             return
         else:
-            print "Array sizes do not match"
-            print "Size of array",ash
-            print "Length of x array is "+str(Nx)+", required size is",ash[1]
-            print "Length of y array is "+str(Ny)+", required size is",ash[0]
+            print("Array sizes do not match")
+            print("Size of array",ash)
+            print("Length of x array is "+str(Nx)+", required size is",ash[1])
+            print("Length of y array is "+str(Ny)+", required size is",ash[0])
             return
         
     xgrid,ygrid=_get_centered_grid_for_pcolormesh(x,y)
@@ -218,20 +218,20 @@ def colorplot(arr,**kwargs):
     #~ if hide_xticks: ax.set_xticks([])
     if hide_xticks: plt.setp(ax.get_xticks(),visible=False)
     else: 
-		ax.get_xaxis().set_major_locator(_getlocator(xtick_locator)(**locator_properties_x))
-		if x_sci:    ax.ticklabel_format(axis='x', style='sci', scilimits=xscilimits)
-		for tick in ax.get_xaxis().get_major_ticks():
-			tick.set_pad(xtickpad)
-			tick.label1 = tick._get_text1()
+        ax.get_xaxis().set_major_locator(_getlocator(xtick_locator)(**locator_properties_x))
+        if x_sci:    ax.ticklabel_format(axis='x', style='sci', scilimits=xscilimits)
+        for tick in ax.get_xaxis().get_major_ticks():
+            tick.set_pad(xtickpad)
+            tick.label1 = tick._get_text1()
 
     #~ if hide_yticks: ax.set_yticks([])
     if hide_yticks: plt.setp(ax.get_yticks(),visible=False)
     else: 
-		ax.get_yaxis().set_major_locator(_getlocator(ytick_locator)(**locator_properties_y))
-		if y_sci:    ax.ticklabel_format(axis='y', style='sci', scilimits=yscilimits)
-		for tick in ax.get_yaxis().get_major_ticks():
-			tick.set_pad(ytickpad)
-			tick.label1 = tick._get_text1()
+        ax.get_yaxis().set_major_locator(_getlocator(ytick_locator)(**locator_properties_y))
+        if y_sci:    ax.ticklabel_format(axis='y', style='sci', scilimits=yscilimits)
+        for tick in ax.get_yaxis().get_major_ticks():
+            tick.set_pad(ytickpad)
+            tick.label1 = tick._get_text1()
     
     if hide_xticklabels: plt.setp(ax.get_xticklabels(),visible=False)
     if hide_yticklabels: plt.setp(ax.get_yticklabels(),visible=False)
@@ -274,8 +274,8 @@ def fitsplot(fitsfile,**kwargs):
     try:
         import pyfits
     except ImportError:
-        print "No pyfits found"
-        print "Install it using 'pip install pyfits'"
+        print("No pyfits found")
+        print("Install it using 'pip install pyfits'")
         quit()
     
     arr=_np.squeeze(pyfits.getdata(fitsfile))
@@ -364,7 +364,7 @@ def _get_common_args(kwargs):
     xy_sci=axes_properties.get('xy_sci',False)
     xscilimits=axes_properties.get('xscilimits',(-3,3))
     yscilimits=axes_properties.get('yscilimits',(-3,3))
-    if xy_sci:	x_sci=y_sci=True
+    if xy_sci:  x_sci=y_sci=True
     
     hide_xticks=axes_properties.get('hide_xticks',False)
     hide_xticklabels=axes_properties.get('hide_xticklabels',False)
@@ -406,9 +406,9 @@ def _get_common_args(kwargs):
     
     polar=subplot_properties.get('polar',False)
     if polar: 
-        print "Note: Assuming x is theta and y is r"
-        print "If plot looks correct you may safely ignore this"
-        print "If plot looks weird you might want to specify x and y"
+        print("Note: Assuming x is theta and y is r")
+        print("If plot looks correct you may safely ignore this")
+        print("If plot looks weird you might want to specify x and y")
     
     usetex=kwargs.pop('usetex',False)
     
@@ -521,8 +521,8 @@ def quiver2D(U,V,**kwargs):
     gridshape =U.shape
     try: assert len(gridshape) == 2
     except AssertionError: 
-        print "quiver2D requires the two components U and V to be 2D fields."
-        print "Size of array provided is",str(gridshape)+", dimension is",len(gridshape)
+        print("quiver2D requires the two components U and V to be 2D fields.")
+        print("Size of array provided is",str(gridshape)+", dimension is",len(gridshape))
         return
     
     (ax,axes_properties,centerzero,cmap,colorbar,colorbar_properties,flipx,flipy,
@@ -574,19 +574,19 @@ def quiver2D(U,V,**kwargs):
     #~ Axis ticks
     if hide_xticks: ax.set_xticks([])
     else: 
-		ax.get_xaxis().set_major_locator(_getlocator(xtick_locator)(**locator_properties_x))
-		if x_sci:    ax.ticklabel_format(axis='x', style='sci', scilimits=xscilimits)
-		for tick in ax.get_xaxis().get_major_ticks():
-			tick.set_pad(xtickpad)
-			tick.label1 = tick._get_text1()
+        ax.get_xaxis().set_major_locator(_getlocator(xtick_locator)(**locator_properties_x))
+        if x_sci:    ax.ticklabel_format(axis='x', style='sci', scilimits=xscilimits)
+        for tick in ax.get_xaxis().get_major_ticks():
+            tick.set_pad(xtickpad)
+            tick.label1 = tick._get_text1()
 
     if hide_yticks: ax.set_yticks([])
     else: 
-		ax.get_yaxis().set_major_locator(_getlocator(ytick_locator)(**locator_properties_y))
-		if y_sci:    ax.ticklabel_format(axis='y', style='sci', scilimits=yscilimits)
-		for tick in ax.get_yaxis().get_major_ticks():
-			tick.set_pad(ytickpad)
-			tick.label1 = tick._get_text1()
+        ax.get_yaxis().set_major_locator(_getlocator(ytick_locator)(**locator_properties_y))
+        if y_sci:    ax.ticklabel_format(axis='y', style='sci', scilimits=yscilimits)
+        for tick in ax.get_yaxis().get_major_ticks():
+            tick.set_pad(ytickpad)
+            tick.label1 = tick._get_text1()
     
     #~ Axis tick labels
     if hide_xticklabels: ax.set_xticklabels([])
@@ -738,19 +738,19 @@ def sphericalplot(arr,**kwargs):
     ash=arr.shape
     try: assert len(ash) == 2
     except AssertionError: 
-        print "sphericalplot requires 2D arrays"
-        print "Size of array provided is",str(ash)+", dimension is",len(ash)
+        print("sphericalplot requires 2D arrays")
+        print("Size of array provided is",str(ash)+", dimension is",len(ash))
         return
     
     warning=kwargs.pop('warn',True)
     
     if warning:
-        print "Assuming latitude along axis 0 and longitude along axis 1."
-        print "If the plot looks all right you can safely ignore this warning."
-        print "Otherwise you might want to transpose your array."
+        print("Assuming latitude along axis 0 and longitude along axis 1.")
+        print("If the plot looks all right you can safely ignore this warning.")
+        print("Otherwise you might want to transpose your array.")
     
     if arr.dtype=='complex128' or arr.dtype=='complex64':
-        print "Ignoring imaginary part"
+        print("Ignoring imaginary part")
         arr=_np.real(arr)
     
     (ax,axes_properties,centerzero,cmap,colorbar,colorbar_properties,flipx,flipy,
@@ -845,10 +845,10 @@ def _subplot_index_is_valid(subplot_index):
     try:
         assert int(subplot_index)>=111 and int(subplot_index)<=999
     except AssertionError:
-        print "Subplot index should lie between 111 and 999"
+        print("Subplot index should lie between 111 and 999")
         return False
     except ValueError:
-        print "Subplot index should be a number"
+        print("Subplot index should be a number")
         return False
         
     
@@ -861,20 +861,20 @@ def _subplot_index_is_valid(subplot_index):
     try:
         assert rowno<nrows and colno<ncols
     except AssertionError:
-        print "Invalid subplot index."
+        print("Invalid subplot index.")
         if nrows>1 and ncols>1:
-            print "Subplot has "+str(nrows)+" rows and "+str(ncols)+" columns"
+            print("Subplot has "+str(nrows)+" rows and "+str(ncols)+" columns")
         elif nrows==1 and ncols>1:
-            print "Subplot has "+str(nrows)+" row and "+str(ncols)+" columns"
+            print("Subplot has "+str(nrows)+" row and "+str(ncols)+" columns")
         elif nrows>1 and ncols==1:
-            print "Subplot has "+str(nrows)+" rows and "+str(ncols)+" column"
+            print("Subplot has "+str(nrows)+" rows and "+str(ncols)+" column")
         else:
-            print "Subplot has 1 row and 1 column"
+            print("Subplot has 1 row and 1 column")
         if nrows==1 and ncols==1:
-            print "Index should be 111"
+            print("Index should be 111")
         else:
-            print ("Index should lie in the range "+str(nrows)+str(ncols)+ 
-                "1 to "+str(nrows)+str(ncols)+str(nrows*ncols))
+            print(("Index should lie in the range "+str(nrows)+str(ncols)+ 
+                "1 to "+str(nrows)+str(ncols)+str(nrows*ncols)))
         return False
     
     return True
